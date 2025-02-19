@@ -1,11 +1,10 @@
 <template>
-  <div>
+  <div class="login-container">
+    <!-- ✅ Parking Sign Image (signs.png) -->
+    <img src="@/assets/signs.png" alt="Parking Signs" class="signs-image" />
 
-    <!-- ✅ Login Container -->
-    <div class="login-container">
-      <!-- ✅ Car Image Above Sign-In Text -->
-      <img src="@/assets/car-logo.png" alt="Car Logo" class="car-logo" />
-
+    <!-- ✅ Login Section -->
+    <div class="login-box">
       <h2 class="login-title">Sign in</h2>
 
       <!-- ✅ Google Sign-In Button -->
@@ -73,28 +72,36 @@ export default {
 </script>
 
 <style scoped>
-
-/* ✅ Login Container */
+/* ✅ Full Page Background */
 .login-container {
-  background-color: #40bd6e;
-  height: 100vh;
+  background-color: #B3C4AF;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
   text-align: center;
+  padding: 20px;
+  margin-top: 20px; /* Reduce this value to move it closer to the navbar */
 }
 
-/* ✅ Car Logo - Now Above the Sign-in Text */
-.car-logo {
-  width: 80px;
-  height: auto;
-  margin-bottom: 15px;
+/* ✅ Parking Sign Image */
+.signs-image {
+  max-width: 100px; /* Decrease this value to make it smaller */
+  margin-bottom: 20px;
+}
+
+/* ✅ Login Box */
+.login-box {
+  background: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  width: 300px;
 }
 
 /* ✅ Sign-In Title */
 .login-title {
-  color: #95E6B3;
+  color: #4a634f;
   font-family: Tahoma, sans-serif;
   font-size: 24px;
   margin-bottom: 20px;
@@ -102,8 +109,8 @@ export default {
 
 /* ✅ Buttons */
 .login-btn {
-  background-color: white;
-  color: #40bd6e;
+  background-color: #87A181;
+  color: white;
   border: none;
   padding: 12px 20px;
   border-radius: 25px;
@@ -115,27 +122,30 @@ export default {
 }
 
 .login-btn:hover {
-  background-color: #f0f0f0;
+  background-color: #75976e;
 }
 
 /* ✅ Form Inputs */
 .login-form {
   display: flex;
   flex-direction: column;
-  width: 250px;
+  width: 100%;
 }
 
 .login-form input {
   padding: 10px;
   margin: 5px 0;
-  border: none;
+  border: 1px solid #ccc;
   border-radius: 10px;
   font-size: 16px;
+  width: 90%;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* ✅ Sign-Up Link */
 .signup-link {
-  color: white;
+  color: #4a634f;
   font-weight: bold;
   cursor: pointer;
   text-decoration: underline;
