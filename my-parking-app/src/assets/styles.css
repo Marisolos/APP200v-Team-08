@@ -1,0 +1,11 @@
+@font-face {
+  font-family: "Nunito Sans"; /* Use the exact font name from the file metadata */
+  src: url("@/assets/fonts/NunitoSans.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+/* ✅ Apply the font to elements */
+body {
+  font-family: "Nunito Sans", sans-serif;
+}
