@@ -31,7 +31,7 @@ export default {
 
 /* Navbar Links */
 .navbar a {
-  color: #0D8F3D; /* ✅ Black text */
+  color: #5B8D8A; /* ✅ Black text */
   text-decoration: none;
   font-size: 18px;
   font-weight: 600;
