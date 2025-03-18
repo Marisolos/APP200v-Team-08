@@ -9,10 +9,11 @@ import { getAuth, onAuthStateChanged } from "firebase/auth";
 import "@/assets/styles.css";
 
 const app = createApp(App);
-
-// ✅ Ensure Firebase auth is loaded before mounting app
 const auth = getAuth();
+
+// ✅ Only mount app and apply router AFTER auth state is ready
 onAuthStateChanged(auth, () => {
   app.use(router);
   app.mount("#app");
 });
+

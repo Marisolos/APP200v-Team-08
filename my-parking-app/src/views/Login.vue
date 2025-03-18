@@ -51,7 +51,7 @@ export default {
     async signInWithGoogle() {
       try {
         await signInWithPopup(auth, provider);
-        this.$router.push("/home");
+        this.$router.push("/home"); // ✅ ADD THIS
       } catch (error) {
         console.error("Google Sign-In Error:", error);
       }
@@ -59,7 +59,7 @@ export default {
     async signInWithEmail() {
       try {
         await signInWithEmailAndPassword(auth, this.email, this.password);
-        this.$router.push("/home");
+        this.$router.push("/home"); // ✅ ADD THIS
       } catch (error) {
         console.error("Email Sign-In Error:", error);
         alert(error.message);
