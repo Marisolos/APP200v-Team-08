@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
-import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { getAuth } from "firebase/auth";
 import Login from "@/views/Login.vue";
 import Home from "@/views/Home.vue";
 import FindParking from "@/views/FindParking.vue";
@@ -12,27 +12,29 @@ const routes = [
   { path: "/finn-parkering", component: FindParking, meta: { requiresAuth: true } },
   { path: "/lei-ut", component: RentOut, meta: { requiresAuth: true } },
   { path: "/faq", component: FAQ, meta: { requiresAuth: true } },
-  { path: "/:pathMatch(.*)*", redirect: "/login" } // Redirect unknown paths to login
+  { path: "/:pathMatch(.*)*", redirect: "/login" }
 ];
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
   scrollBehavior() {
-    return { top: 0 }; // Ensures page scrolls to top when navigating
+    return { top: 0 };
   }
 });
 
-// ✅ Navigation Guard: Redirects unauthenticated users to /login
+// ✅ Simplified guard
 router.beforeEach((to, from, next) => {
-  const auth = getAuth();
-  onAuthStateChanged(auth, (user) => {
-    if (to.meta.requiresAuth && !user) {
-      next("/login"); // Redirect if user is not logged in
-    } else {
-      next(); // Proceed if user is logged in or accessing login page
-    }
-  });
+  const user = getAuth().currentUser;
+  
+  if (to.meta.requiresAuth && !user) {
+    next("/login");
+  } else if (to.path === "/login" && user) {
+    next("/home");
+  } else {
+    next();
+  }
 });
 
 export default router;
+
