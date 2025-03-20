@@ -1,7 +1,7 @@
 <template>
   <div class="find-parking-container">
     <!-- Page Title -->
-    <h2 class="page-title">Finn Parkering</h2>
+    <h2 class="page-title">Find Parking</h2>
 
     <!-- Search Bar -->
     <div class="search-container">
@@ -15,15 +15,18 @@
     </div>
 
     <!-- Placeholder for Map (Future Implementation) -->
-    <div class="map-placeholder">
-      <p>🗺️ Map will be displayed here in the future...</p>
+    <div class="map-container">
+      <ParkingMap />
     </div>
   </div>
 </template>
 
 <script>
+import ParkingMap from "@/components/ParkingMap.vue"; 
+
 export default {
   name: "FindParking",
+  components: { ParkingMap }, // 🔹 Registrerer komponenten
   data() {
     return {
       searchQuery: "", // Stores the search input
@@ -98,7 +101,7 @@ export default {
   background-color: #FED28D;
 }
 
-/* 🔹 Map Placeholder */
+/* 🔹 Map Placeholder 
 .map-placeholder {
   margin-top: 40px;
   width: 90%;
@@ -112,6 +115,14 @@ export default {
   font-family: "Nunito Sans", sans-serif;
   color: #4a4a4a;
   border-radius: 15px;
+} 
+*/
+
+.map-container {
+  margin-top: 20px;
+  width: 90%;
+  max-width: 800px;
+  height: 500px; /* Juster høyden om nødvendig */
 }
 </style>
 

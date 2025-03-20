@@ -3,7 +3,7 @@
     <nav class="navbar" v-if="isReady">
       <div class="nav-links">
         <router-link to="/home" v-if="user">Home</router-link>
-        <router-link to="/finn-parkering" v-if="user">Finn parkering</router-link>
+        <router-link to="/finn-parkering" v-if="user">Find Parking</router-link>
         <router-link to="/lei-ut" v-if="user">Lei ut</router-link>
         <router-link to="/faq" v-if="user">FAQ</router-link>
       </div>
