@@ -101,23 +101,6 @@ export default {
   background-color: #FED28D;
 }
 
-/* 🔹 Map Placeholder 
-.map-placeholder {
-  margin-top: 40px;
-  width: 90%;
-  max-width: 800px;
-  height: 400px;
-  background-color: #d9e4d2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  font-family: "Nunito Sans", sans-serif;
-  color: #4a4a4a;
-  border-radius: 15px;
-} 
-*/
-
 .map-container {
   margin-top: 20px;
   width: 90%;
