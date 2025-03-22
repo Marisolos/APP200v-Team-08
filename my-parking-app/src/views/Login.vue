@@ -83,7 +83,7 @@ export default {
 /* ✅ Ensure Full-Screen Fit */
 /* ✅ Full Page Background */
 .page-container {
-  background-color: #B3C4AF;
+  background-color: #ABC89D;
   height: 100vh; /* Full viewport height */
   display: flex;
   justify-content: center;

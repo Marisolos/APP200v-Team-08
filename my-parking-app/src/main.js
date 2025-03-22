@@ -16,4 +16,3 @@ onAuthStateChanged(auth, () => {
   app.use(router);
   app.mount("#app");
 });
-
