@@ -5,6 +5,7 @@ import Home from "@/views/Home.vue";
 import FindParking from "@/views/FindParking.vue";
 import RentOut from "@/views/RentOut.vue";
 import FAQ from "@/views/FAQ.vue";
+import EditProfile from '@/views/EditProfile.vue';
 
 const routes = [
   { path: "/login", component: Login },
@@ -12,7 +13,12 @@ const routes = [
   { path: "/finn-parkering", component: FindParking, meta: { requiresAuth: true } },
   { path: "/lei-ut", component: RentOut, meta: { requiresAuth: true } },
   { path: "/faq", component: FAQ, meta: { requiresAuth: true } },
-  { path: "/:pathMatch(.*)*", redirect: "/login" }
+  { path: "/:pathMatch(.*)*", redirect: "/login" },
+  { path: "/edit-profile",
+    name: "EditProfile",
+    component: EditProfile }
+  
+  
 ];
 
 const router = createRouter({

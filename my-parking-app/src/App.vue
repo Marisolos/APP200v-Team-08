@@ -7,18 +7,24 @@
         <router-link to="/lei-ut" v-if="user">Lei ut</router-link>
         <router-link to="/faq" v-if="user">FAQ</router-link>
       </div>
-      <button @click="logout" v-if="user" class="logout-btn">Log out</button>
+
+      <!-- 👤 Profile Picture & Log Out Button -->
+      <div class="right-controls" v-if="user">
+        <router-link to="/edit-profile" class="profile-link">
+          <img :src="user.photoURL || defaultAvatar" alt="Profile" class="profile-img" />
+        </router-link>
+        <button @click="logout" class="logout-btn">Log out</button>
+      </div>
     </nav>
-    
-    <!-- ✅ Always render the router-view -->
+
     <router-view />
   </div>
 </template>
 
-
 <script>
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
-import router from './router'; // Adjust if your router file is located elsewhere
+import router from './router';
+import defaultAvatar from "@/assets/default-user.png"; // 🔁 Make sure this file exists
 
 export default {
   name: "App",
@@ -26,51 +32,49 @@ export default {
     return {
       user: null,
       isReady: false,
+      defaultAvatar
     };
   },
   created() {
-  const auth = getAuth();
-  onAuthStateChanged(auth, (user) => {
-    this.user = user;
-    this.isReady = true;
+    const auth = getAuth();
+    onAuthStateChanged(auth, (user) => {
+      this.user = user;
+      this.isReady = true;
 
-    // ✅ Add this block inside the onAuthStateChanged callback:
-    if (this.$route && this.$route.path === "/login" && user) {
-      this.$router.push("/home");
-    }
-  });
-},
+      if (this.$route && this.$route.path === "/login" && user) {
+        this.$router.push("/home");
+      }
+    });
+  },
   methods: {
     async logout() {
       const auth = getAuth();
       await signOut(auth);
       this.user = null;
       router.push("/login");
-    },
-  },
+    }
+  }
 };
 </script>
-
 
 <style scoped>
 .navbar {
   display: flex;
-  justify-content: center; /* ✅ Center the links */
+  justify-content: center;
   align-items: center;
   padding: 15px 30px;
   background-color: white;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
   font-family: "Nunito Sans", sans-serif;
-  position: relative; /* ✅ Allows absolute positioning inside */
+  position: relative;
 }
 
-/* ✅ Keep previous navbar link styling */
 .navbar a {
-  color: #5B8D8A; /* ✅ Keep the same color */
+  color: #5B8D8A;
   text-decoration: none;
   font-size: 18px;
   font-weight: 600;
-  margin-left: 20px; /* ✅ Space between links */
+  margin-left: 20px;
   transition: color 0.3s ease-in-out;
 }
 
@@ -78,18 +82,33 @@ export default {
   color: black;
 }
 
-/* ✅ Wrapper for links to center them */
 .nav-links {
   display: flex;
-  gap: 20px; /* ✅ Space between links */
+  gap: 20px;
 }
 
-/* ✅ Logout Button (Positioned on the Right) */
-.logout-btn {
+/* 🔗 Right side: profile + logout */
+.right-controls {
   position: absolute;
-  right: 30px; /* ✅ Aligns to the right */
   top: 50%;
+  right: 30px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
   transform: translateY(-50%);
+}
+
+/* 👤 Profile Picture */
+.profile-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #4d7c5c;
+}
+
+/* 🔘 Log out Button */
+.logout-btn {
   background-color: #87A181;
   color: white;
   border: none;
@@ -104,5 +123,4 @@ export default {
 .logout-btn:hover {
   background-color: #FED28D;
 }
-
 </style>
