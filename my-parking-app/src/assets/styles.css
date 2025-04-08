@@ -9,3 +9,15 @@
 body {
   font-family: "Nunito Sans", sans-serif;
 }
+
+/* Fjerner piler i number inputs for Chrome, Safari, Edge */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Fjerner piler i Firefox */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
