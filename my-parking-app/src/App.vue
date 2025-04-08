@@ -9,15 +9,18 @@
         <img src="@/assets/parq-logo-1.png" alt="Logo" class="logo" />
       </div>
 
-
       <div class="nav-links">
         <router-link to="/home" v-if="user">Home</router-link>
         <router-link to="/finn-parkering" v-if="user">Find Parking</router-link>
         <router-link to="/lei-ut" v-if="user">Lei ut</router-link>
         <router-link to="/faq" v-if="user">FAQ</router-link>
       </div>
-      <div class="navbar-right">
-        <button @click="logout" v-if="user" class="logout-btn">Log out</button>
+
+      <div class="right-controls" v-if="user">
+        <router-link to="/edit-profile" class="profile-link">
+          <img :src="user.photoURL || defaultAvatar" alt="Profile" class="profile-img" />
+        </router-link>
+        <button @click="logout" class="logout-btn">Log out</button>
       </div>
     </div>
 
@@ -30,6 +33,7 @@
 <script>
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import router from './router';
+import defaultAvatar from "@/assets/default-user.png";
 
 export default {
   name: "App",
@@ -37,6 +41,7 @@ export default {
     return {
       user: null,
       isReady: false,
+      defaultAvatar,
       showNavbarFixed: false,
       lastScrollY: 0,
       scrollUpDistance: 0
@@ -71,20 +76,18 @@ export default {
       const scrollDelta = currentY - this.lastScrollY;
 
       if (scrollDelta < 0) {
-        // Scroller opp
         this.scrollUpDistance += Math.abs(scrollDelta);
         if (this.scrollUpDistance > 30) {
           this.showNavbarFixed = true;
         }
       } else if (scrollDelta > 0) {
-        // Scroller ned
         this.scrollUpDistance = 0;
         this.showNavbarFixed = false;
       }
 
       this.lastScrollY = currentY;
-    },
-  },
+    }
+  }
 };
 </script>
 
@@ -132,13 +135,29 @@ export default {
 .nav-links {
   display: flex;
   gap: 20px;
+  justify-content: center;
+  flex: 1;
+}
+
+.right-controls {
+  position: absolute;
+  top: 50%;
+  right: 30px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  transform: translateY(-50%);
+}
+
+.profile-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #4d7c5c;
 }
 
 .logout-btn {
-  position: absolute;
-  right: 30px;
-  top: 50%;
-  transform: translateY(-50%);
   background-color: #87A181;
   color: white;
   border: none;
@@ -155,7 +174,7 @@ export default {
 }
 
 .navbar-spacer {
-  height: 57px; /* samme høyde som navbaren */
+  height: 57px;
 }
 
 .logo-wrapper {
@@ -169,16 +188,5 @@ export default {
 
 .navbar-left {
   flex: 0 0 auto;
-}
-
-.navbar-right {
-  flex: 0 0 auto;
-}
-
-.nav-links {
-  display: flex;
-  gap: 20px;
-  justify-content: center;
-  flex: 1;
 }
 </style>
