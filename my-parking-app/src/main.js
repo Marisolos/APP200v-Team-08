@@ -2,6 +2,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
 import { createApp } from "vue";
+import { createPinia } from 'pinia'
 import App from "./App.vue";
 import router from "./router";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
@@ -9,6 +10,7 @@ import { getAuth, onAuthStateChanged } from "firebase/auth";
 import "@/assets/styles.css";
 
 const app = createApp(App);
+app.use(createPinia())
 const auth = getAuth();
 
 // ✅ Only mount app and apply router AFTER auth state is ready
