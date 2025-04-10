@@ -4,7 +4,7 @@ import { getFirestore } from "firebase/firestore"; // ✅ Import Firestore
 
 // ✅ Your Firebase configuration (REPLACE WITH YOUR OWN CONFIG IF CHANGED!)
 const firebaseConfig = {
-  apiKey: process.env.VUE_APP_FIREBASE_API_KEY,
+  apiKey: "AIzaSyDrGNUr4ZGwzBqVS6Fujt6fus63WS3vp6k",
   authDomain: "parkingapp-59c1a.firebaseapp.com",
   projectId: "parkingapp-59c1a",
   storageBucket: "parkingapp-59c1a.firebasestorage.app",
