@@ -1,19 +1,18 @@
 <template>
-    <div class="home-container">
-      <h2> Hjem</h2>
-      <p>Velkommen! Du er nå logget inn.</p>
+    <div class="page-container">
+      <h2>Ads</h2>
+      <p>This page will display all available listings.</p>
     </div>
   </template>
   
   <script>
   export default {
-    name: "UserHome"
+    name: "AdListings"
   };
   </script>
   
   <style scoped>
-/* 🔹 Page Container */
-.home-container {
+  .page-container {
   display: flex;
   flex-direction: column;
   align-items: center; /* Centers horizontally */
@@ -27,7 +26,6 @@
   font-size: 28px;
   color: #ffffff; /* Medium grey */
   margin-bottom: 20px;
-}
-
+  }
   </style>
   

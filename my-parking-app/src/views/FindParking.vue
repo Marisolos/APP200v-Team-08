@@ -50,7 +50,7 @@ export default {
   justify-content: flex-start; /* Moves content closer to the top */
   padding-top: 20px; /* Reduce padding to move even higher */
   height: 100vh; /* Full height */
-  background-color: #B3C4AF;
+  background-color: #ABC89D;
 }
 
 /* 🔹 Page Title */

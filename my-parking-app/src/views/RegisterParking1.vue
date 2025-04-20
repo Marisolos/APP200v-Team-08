@@ -1,6 +1,6 @@
 <template>
   <div class="register-container">
-    <h2 class="page-title">Registrer parkeringsplass</h2>
+    <h2 class="page-title">Register Parking</h2>
 
     <div class="form-section center">
       <label><strong>📍 Bruk lagret adresse fra profilen?</strong></label><br>
@@ -131,7 +131,7 @@ export default {
   align-items: center;
   justify-content: flex-start;
   padding-top: 20px;
-  background-color: #B3C4AF;
+  background-color: #ABC89D;
   min-height: 100vh;
   font-family: "Nunito Sans", sans-serif;
 }
