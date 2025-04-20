@@ -15,6 +15,7 @@
   .page-container {
     padding: 20px;
     text-align: center;
+    background-color: #ABC89D;
   }
   </style>
   

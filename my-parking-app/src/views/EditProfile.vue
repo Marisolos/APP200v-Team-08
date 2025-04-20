@@ -190,7 +190,7 @@ export default {
 
 <style scoped>
 .profile-page {
-  background-color: #AFCDBB;
+  background-color: #ABC89D;
   min-height: 100vh;
   padding: 40px 20px;
   font-family: "Nunito Sans", sans-serif;

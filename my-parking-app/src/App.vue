@@ -12,8 +12,9 @@
       <div class="nav-links">
         <router-link to="/home" v-if="user">Home</router-link>
         <router-link to="/finn-parkering" v-if="user">Find Parking</router-link>
-        <router-link to="/lei-ut" v-if="user">Lei ut</router-link>
         <router-link to="/faq" v-if="user">FAQ</router-link>
+        <router-link to="/register-parking-1" v-if="user">Register Parking</router-link>
+        <router-link to="/ads" v-if="user">Ads</router-link>
       </div>
 
       <div class="right-controls" v-if="user">
@@ -158,7 +159,7 @@ export default {
 }
 
 .logout-btn {
-  background-color: #87A181;
+  background-color: #5B8D8A;
   color: white;
   border: none;
   padding: 8px 15px;
