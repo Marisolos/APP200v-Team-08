@@ -1,6 +1,6 @@
 <template>
   <div class="register-container">
-    <h2 class="page-title">Register Parking</h2>
+    <h2 class="page-title">Registrer parkering</h2>
 
     <div class="form-section center">
       <label><strong>📍 Bruk lagret adresse fra profilen?</strong></label><br>

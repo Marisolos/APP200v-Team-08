@@ -90,7 +90,7 @@
     flex-direction: column;
     align-items: center;
     padding-top: 20px;
-    background-color: #b3c4af;
+    background-color: #ABC89D;
     min-height: 100vh;
     font-family: "Nunito Sans", sans-serif;
   }
