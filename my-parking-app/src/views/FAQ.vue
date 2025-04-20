@@ -13,9 +13,19 @@
   
   <style scoped>
   .page-container {
-    padding: 20px;
-    text-align: center;
-    background-color: #ABC89D;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centers horizontally */
+  justify-content: flex-start; /* Moves everything closer to the top */
+  text-align: center; /* Ensures text inside is centered */
+  padding-top: 20px;
+  height: 100vh;
+  background-color: #ABC89D;
+  width: 100%; /* Ensures full width to properly center content */
+  font-family: "Nunito Sans", sans-serif;
+  font-size: 28px;
+  color: #ffffff; /* Medium grey */
+  margin-bottom: 20px;
   }
   </style>
   
