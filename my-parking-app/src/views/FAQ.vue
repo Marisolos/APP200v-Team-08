@@ -1,31 +1,102 @@
 <template>
-    <div class="page-container">
-      <h2>FAQ</h2>
-      <p>Her finner du svar på vanlige spørsmål.</p>
+  <div class="faq-container">
+    <h2 class="section-title">Frequently Asked Questions</h2>
+
+    <div v-for="(item, index) in faqs" :key="index" class="faq-item">
+      <div class="faq-question" @click="toggle(index)">
+        {{ item.question }}
+        <span class="arrow" :class="{ open: activeIndex === index }">▼</span>
+      </div>
+      <div v-if="activeIndex === index" class="faq-answer">
+        {{ item.answer }}
+      </div>
     </div>
-  </template>
-  
-  <script>
-  export default {
-    name: "FAQ"
-  };
-  </script>
-  
-  <style scoped>
-  .page-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center; /* Centers horizontally */
-  justify-content: flex-start; /* Moves everything closer to the top */
-  text-align: center; /* Ensures text inside is centered */
-  padding-top: 20px;
-  height: 100vh;
-  background-color: #ABC89D;
-  width: 100%; /* Ensures full width to properly center content */
-  font-family: "Nunito Sans", sans-serif;
-  font-size: 28px;
-  color: #ffffff; /* Medium grey */
-  margin-bottom: 20px;
+  </div>
+</template>
+
+<script>
+export default {
+  name: "FAQ",
+  data() {
+    return {
+      activeIndex: null,
+      faqs: [
+        {
+          question: "How do I rent a parking spot?",
+          answer: "Go to 'Find Parking', search for a location, and click 'Book' on a listed space."
+        },
+        {
+          question: "How do I list my parking spot?",
+          answer: "Use the 'Register Parking' page to add location, price, and availability."
+        },
+        {
+          question: "How do I know my booking was successful?",
+          answer: "You’ll get a confirmation and can view it in your profile under history."
+        },
+        {
+          question: "Can I update my personal information?",
+          answer: "Yes, go to 'Edit Profile' to change your name, phone number, and more."
+        },
+        {
+          question: "Can I manage my listings?",
+          answer: "Yes, under 'My Listings' in your profile, you can edit or remove spots you've listed."
+        },
+      ]
+    };
+  },
+  methods: {
+    toggle(index) {
+      this.activeIndex = this.activeIndex === index ? null : index;
+    }
   }
-  </style>
+};
+</script>
+
+<style scoped>
+.faq-container {
+  background-color: #ABC89D;
+  padding: 40px 20px;
+  font-family: "Nunito Sans", sans-serif;
+  min-height: 100vh;
+}
+
+.section-title {
+  text-align: center;
+  color: #fff;
+  margin-bottom: 30px;
+  font-size: 28px;
+}
+
+.faq-item {
+  background-color: #fff;
+  margin: 10px auto;
+  padding: 15px 20px;
+  border-radius: 10px;
+  max-width: 700px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+}
+
+.faq-question {
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.arrow {
+  transition: transform 0.3s ease;
+}
+
+.arrow.open {
+  transform: rotate(180deg);
+}
+
+.faq-answer {
+  margin-top: 10px;
+  color: #555;
+  font-size: 15px;
+}
+</style>
+
   
