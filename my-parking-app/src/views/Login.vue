@@ -79,16 +79,16 @@ export default {
 </script>
 
 <style scoped>
-/* ✅ Full Page Background */
-/* ✅ Ensure Full-Screen Fit */
-/* ✅ Full Page Background */
+/*  Full Page Background */
+/*  Ensure Full-Screen Fit */
+/*  Full Page Background */
 .page-container {
   background-color: #ABC89D;
   height: 100vh; /* Full viewport height */
   display: flex;
   justify-content: center;
-  align-items: flex-start; /* ✅ Moves content closer to the top */
-  padding-top: 40px; /* ✅ Adds some space from the top */
+  align-items: flex-start; /*  Moves content closer to the top */
+  padding-top: 40px; /*  Adds some space from the top */
   overflow: hidden; /* Prevents scrolling */
 }
 
@@ -99,7 +99,7 @@ export default {
   align-items: center;
   justify-content: space-between;
   width: 800px; /* Fixed width */
-  height: 70vh; /* ✅ Reduced height to bring it higher */
+  height: 70vh; /*  Reduced height to bring it higher */
   border-radius: 20px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
   overflow: hidden;
