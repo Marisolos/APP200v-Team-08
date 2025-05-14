@@ -96,20 +96,25 @@
 
     <!-- PARKING HISTORY TAB -->
     <div v-if="currentTab === 'history'" class="secondary-tab">
-      <h2>Parking History</h2>
-      <p>This section will show a list of where you’ve parked. (Feature coming soon!)</p>
-    </div>
+    <h2>Parking History</h2>
+    <div v-if="loadingHistory">Loading...</div>
+    <div v-else-if="parkingHistory.length === 0">You haven’t booked any spots yet.</div>
+    <ul v-else>
+      <li v-for="booking in parkingHistory" :key="booking.id">
+        {{ booking.address }} — {{ formatDateOnly(booking.timestamp?.toDate?.()) }}
+        <button @click="cancelBooking(booking.id)" class="cancel-btn">Cancel</button>
+      </li>
+    </ul>
+  </div>
 
     <!-- RENTAL HISTORY TAB -->
-<div v-if="currentTab === 'rentalHistory'" class="secondary-tab">
-  <h2>Rental History</h2>
-  <p>This section will show who has rented your spots. (Feature coming soon!)</p>
-</div>
+    <div v-if="currentTab === 'rentalHistory'" class="secondary-tab">
+      <h2>Rental History</h2>
+      <p>This section will show who has rented your spots. (Feature coming soon!)</p>
+    </div>
 
-  
-   <!-- MY LISTINGS TAB -->
-<div v-if="currentTab === 'listings'" class="secondary-tab">
-  <h2>My Listings</h2>
+    <!-- MY LISTINGS TAB -->
+    <div v-if="currentTab === 'listings'" class="secondary-tab">  <h2>My Listings</h2>
 
   <div v-if="loadingListings">Loading your listings...</div>
   <div v-else-if="listings.length === 0">You haven’t listed any spots yet.</div>
@@ -129,7 +134,14 @@
 
 <script>
 import { getAuth, updateProfile } from "firebase/auth";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  query,
+  where,
+  deleteDoc,
+  doc
+} from "firebase/firestore";
 import { db } from "@/firebase";
 import defaultAvatar from "@/assets/default-user.png";
 
@@ -155,6 +167,8 @@ export default {
 
       listings: [],
       loadingListings: false,
+      parkingHistory: [],
+      loadingHistory: false
     };
   },
   mounted() {
@@ -170,101 +184,136 @@ export default {
       this.email = this.user.email || "";
 
       this.fetchListings();
+      this.fetchParkingHistory();
     }
   },
   methods: {
-  async fetchListings() {
-    if (!this.user) return;
-    this.loadingListings = true;
+    formatDateOnly(date) {
+      if (!date) return "";
+      return new Intl.DateTimeFormat("en-GB", {
+        dateStyle: "short"
+      }).format(date);
+    },
 
-    try {
-      const q = query(
-        collection(db, "listings"),
-        where("ownerId", "==", this.user.uid)
-      );
-      const querySnapshot = await getDocs(q);
-      this.listings = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-    } catch (err) {
-      console.error("Error fetching listings:", err);
-    } finally {
-      this.loadingListings = false;
-    }
-  },
+    async fetchListings() {
+      if (!this.user) return;
+      this.loadingListings = true;
+      try {
+        const q = query(
+          collection(db, "listings"),
+          where("ownerId", "==", this.user.uid)
+        );
 
-  onFileChange(e) {
-    if (this.isGoogleUser) return;
-    const file = e.target.files[0];
-    if (file && file.size > 2 * 1024 * 1024) {
-      alert("Image must be smaller than 2MB.");
-      return;
-    }
-    this.photoFile = file;
-    if (file) this.previewUrl = URL.createObjectURL(file);
-  },
+        const querySnapshot = await getDocs(q);
+        this.listings = querySnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+      } catch (err) {
+        console.error("Error fetching listings:", err);
+      } finally {
+        this.loadingListings = false;
+      }
+    },
 
-  async updateProfile() {
-    this.submitted = true;
+    async fetchParkingHistory() {
+      if (!this.user) return;
+      this.loadingHistory = true;
+      try {
+        const q = query(
+          collection(db, "bookings"),
+          where("renterId", "==", this.user.uid)
+        );
+        const snapshot = await getDocs(q);
+        this.parkingHistory = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+      } catch (err) {
+        console.error("Error fetching parking history:", err);
+      } finally {
+        this.loadingHistory = false;
+      }
+    },
 
-    const nameValid = /^[A-Za-z]+$/;
-    const phoneValid = /^\+?\d{7,15}$/;
-    const emailValid = /.+@.+\..+/;
+    async cancelBooking(bookingId) {
+      try {
+        await deleteDoc(doc(db, "bookings", bookingId));
+        this.parkingHistory = this.parkingHistory.filter(b => b.id !== bookingId);
+      } catch (err) {
+        console.error("Error canceling booking:", err);
+      }
+    },
 
-    if (
-      (this.firstName && !nameValid.test(this.firstName)) ||
-      (this.lastName && !nameValid.test(this.lastName)) ||
-      (this.phone && !phoneValid.test(this.phone)) ||
-      (this.email && !emailValid.test(this.email)) ||
-      (this.address && this.address.length < 3)
-    ) {
-      return;
-    }
+    formatDate(date) {
+      if (!date) return "";
+      return new Intl.DateTimeFormat("en-GB", {
+        dateStyle: "short",
+        timeStyle: "medium"
+      }).format(date);
+    },
 
-    if (!this.isGoogleUser && this.newPassword && this.newPassword.length < 6) {
-      return;
-    }
+    onFileChange(e) {
+      if (this.isGoogleUser) return;
+      const file = e.target.files[0];
+      if (file && file.size > 2 * 1024 * 1024) {
+        alert("Image must be smaller than 2MB.");
+        return;
+      }
+      this.photoFile = file;
+      if (file) this.previewUrl = URL.createObjectURL(file);
+    },
 
-    if (!this.isGoogleUser && this.newPassword && this.newPassword !== this.confirmPassword) {
-      return;
-    }
+    async updateProfile() {
+      this.submitted = true;
 
-    const auth = getAuth();
-    const user = auth.currentUser;
-    const displayName = `${this.firstName} ${this.lastName}`;
-    const updates = { displayName };
+      const nameValid = /^[A-Za-z]+$/;
+      const phoneValid = /^\+?\d{7,15}$/;
+      const emailValid = /.+@.+\..+/;
 
-    try {
-      if (this.photoFile) {
-        const reader = new FileReader();
-        reader.onloadend = async () => {
-          updates.photoURL = reader.result;
+      if (
+        (this.firstName && !nameValid.test(this.firstName)) ||
+        (this.lastName && !nameValid.test(this.lastName)) ||
+        (this.phone && !phoneValid.test(this.phone)) ||
+        (this.email && !emailValid.test(this.email)) ||
+        (this.address && this.address.length < 3)
+      ) {
+        return;
+      }
+
+      if (!this.isGoogleUser && this.newPassword && this.newPassword.length < 6) {
+        return;
+      }
+
+      if (!this.isGoogleUser && this.newPassword && this.newPassword !== this.confirmPassword) {
+        return;
+      }
+
+      const auth = getAuth();
+      const user = auth.currentUser;
+      const displayName = `${this.firstName} ${this.lastName}`;
+      const updates = { displayName };
+
+      try {
+        if (this.photoFile) {
+          const reader = new FileReader();
+          reader.onloadend = async () => {
+            updates.photoURL = reader.result;
+            await updateProfile(user, updates);
+            alert("Profile updated!");
+          };
+          reader.readAsDataURL(this.photoFile);
+        } else {
           await updateProfile(user, updates);
           alert("Profile updated!");
-        };
-        reader.readAsDataURL(this.photoFile);
-      } else {
-        await updateProfile(user, updates);
-        alert("Profile updated!");
+        }
+      } catch (err) {
+        console.error("Error updating profile:", err);
+        alert("Failed to update profile.");
       }
-    } catch (err) {
-      console.error("Error updating profile:", err);
-      alert("Failed to update profile.");
     }
-  },
-
-  formatDate(date) {
-    if (!date) return "";
-    return new Intl.DateTimeFormat("en-GB", {
-      dateStyle: "short",
-      timeStyle: "medium"
-    }).format(date);
   }
-}
-
-};
-</script>
+};</script>
 
 
 <style scoped>
@@ -454,5 +503,43 @@ label h3 {
   padding: 20px;
   box-shadow: 0px 4px 10px rgba(0,0,0,0.05);
 }
+
+.cancel-btn {
+  margin-left: 15px;
+  background-color: #e74c3c;
+  color: white;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+.cancel-btn:hover {
+  background-color: #c0392b;
+}
+
+.secondary-tab ul {
+  text-align: left;
+  padding-left: 0;
+  list-style: none;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.secondary-tab li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f9f9f9;
+  padding: 15px 20px;
+  margin-bottom: 15px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.secondary-tab h2 {
+  margin-bottom: 30px; /* Adjust the value as needed */
+}
+
 
 </style>

@@ -7,9 +7,11 @@
         {{ item.question }}
         <span class="arrow" :class="{ open: activeIndex === index }">▼</span>
       </div>
-      <div v-if="activeIndex === index" class="faq-answer">
-        {{ item.answer }}
-      </div>
+      <transition name="fade-slide">
+  <div v-if="activeIndex === index" class="faq-answer">
+    {{ item.answer }}
+  </div>
+</transition>
     </div>
   </div>
 </template>
@@ -97,6 +99,27 @@ export default {
   color: #555;
   font-size: 15px;
 }
+
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 0.3s ease;
+}
+
+.fade-slide-enter-from,
+.fade-slide-leave-to {
+  max-height: 0;
+  opacity: 0;
+  transform: translateY(-5px);
+  overflow: hidden;
+}
+
+.fade-slide-enter-to,
+.fade-slide-leave-from {
+  max-height: 200px;
+  opacity: 1;
+  transform: translateY(0);
+}
+
 </style>
 
   
