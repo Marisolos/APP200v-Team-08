@@ -4,7 +4,8 @@
       class="navbar"
       v-if="isReady"
       :class="{ fixed: showNavbarFixed }"
-      ref="navbar">
+      ref="navbar"
+    >
       <div class="navbar-left">
         <img src="@/assets/parq-logo-1.png" alt="Logo" class="logo" />
       </div>
@@ -26,7 +27,6 @@
     </div>
 
     <div class="navbar-spacer" v-if="showNavbarFixed"></div>
-
     <router-view />
   </div>
 </template>
@@ -94,15 +94,14 @@ export default {
 
 <style scoped>
 .navbar {
+  position: relative;
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
   padding: 15px 30px;
   background-color: white;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
   font-family: "Nunito Sans", sans-serif;
-  position: relative;
-  transition: top 0.3s ease-in-out;
   z-index: 1000;
 }
 
@@ -120,12 +119,28 @@ export default {
   }
 }
 
+.navbar-left {
+  flex-shrink: 0;
+}
+
+.logo {
+  height: 40px;
+}
+
+.nav-links {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+}
+
 .navbar a {
   color: #5B8D8A;
   text-decoration: none;
   font-size: 18px;
   font-weight: 600;
-  margin-left: 20px;
   transition: color 0.3s ease-in-out;
 }
 
@@ -133,21 +148,11 @@ export default {
   color: black;
 }
 
-.nav-links {
-  display: flex;
-  gap: 20px;
-  justify-content: center;
-  flex: 1;
-}
-
 .right-controls {
-  position: absolute;
-  top: 50%;
-  right: 30px;
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 15px;
-  transform: translateY(-50%);
 }
 
 .profile-img {
@@ -176,18 +181,5 @@ export default {
 
 .navbar-spacer {
   height: 57px;
-}
-
-.logo-wrapper {
-  flex-shrink: 0;
-  margin-right: auto;
-}
-
-.logo {
-  height: 40px;
-}
-
-.navbar-left {
-  flex: 0 0 auto;
 }
 </style>
