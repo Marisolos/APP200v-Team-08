@@ -29,7 +29,7 @@
         <div class="ad-details">
           <h3 class="ad-title">{{ ad.address }}</h3>
           <p class="ad-subtitle">Published {{ formatDateOnly(ad.createdAt) }}</p>
-          <p class="ad-address"><strong>Price:</strong> {{ ad.price }} kr ({{ ad.paymentPeriod }})</p>
+          <p class="ad-address"><strong>Price:</strong> {{ ad.price }} kr /hour</p>
           <p class="ad-address"><strong>Available:</strong> {{ ad.availableWeekdays }} | {{ ad.startTime }}–{{ ad.endTime }}</p>
           <div class="ad-book">
             <button class="book-btn" @click="selectAd(ad)">Book</button>
