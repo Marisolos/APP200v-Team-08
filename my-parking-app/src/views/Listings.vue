@@ -6,7 +6,7 @@
       <input
   type="text"
   v-model="searchQuery"
-  placeholder="Search by address, city, ID, price, or day"
+  placeholder="Search by address, city, price, or day"
   class="search-bar"
 />
 
