@@ -10,19 +10,19 @@ import RegisterParking2 from "@/views/RegisterParking2.vue";
 import RegisterParking3 from "@/views/RegisterParking3.vue";
 import RegisterParking4 from "@/views/RegisterParking4.vue";
 import EditProfile from "@/views/EditProfile.vue";
-import Ads from "@/views/Ads.vue";
+import Listings from "@/views/Listings.vue";
 
 const routes = [
   { path: "/login", component: Login },
   { path: "/home", component: Home, meta: { requiresAuth: true } },
   { path: "/finn-parkering", component: FindParking, meta: { requiresAuth: true } },
-  { path: "/faq", component: FAQ, meta: { requiresAuth: true } },
   { path: "/register-parking-1", component: RegisterParking1, meta: { requiresAuth: true } },
   { path: "/register-parking-2", component: RegisterParking2, meta: { requiresAuth: true } },
   { path: "/register-parking-3", component: RegisterParking3, meta: { requiresAuth: true } },
   { path: "/register-parking-4", component: RegisterParking4, meta: { requiresAuth: true } },
   { path: "/edit-profile", name: "EditProfile", component: EditProfile, meta: { requiresAuth: true } },
-  { path: "/ads", component: Ads, meta: { requiresAuth: true } },
+  { path: "/listings", component: Listings, meta: { requiresAuth: true } },
+  { path: "/faq", component: FAQ, meta: { requiresAuth: true } },
   { path: "/:pathMatch(.*)*", redirect: "/login" } // Keep this LAST
 ];
 

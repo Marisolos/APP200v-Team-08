@@ -100,11 +100,15 @@
     <div v-if="loadingHistory">Loading...</div>
     <div v-else-if="parkingHistory.length === 0">You haven’t booked any spots yet.</div>
     <ul v-else>
-      <li v-for="booking in parkingHistory" :key="booking.id">
-        {{ booking.address }} — {{ formatDateOnly(booking.timestamp?.toDate?.()) }}
-        <button @click="cancelBooking(booking.id)" class="cancel-btn">Cancel</button>
-      </li>
-    </ul>
+  <li v-for="booking in parkingHistory" :key="booking.id">
+    <div>
+      <strong>{{ booking.address }}</strong><br />
+      {{ mapDay(booking.day) }} — {{ booking.startTime }} to {{ booking.endTime }}
+    </div>
+    <button @click="cancelBooking(booking.id)" class="cancel-btn">Cancel</button>
+  </li>
+</ul>
+
   </div>
 
     <!-- RENTAL HISTORY TAB -->
@@ -188,12 +192,6 @@ export default {
     }
   },
   methods: {
-    formatDateOnly(date) {
-      if (!date) return "";
-      return new Intl.DateTimeFormat("en-GB", {
-        dateStyle: "short"
-      }).format(date);
-    },
 
     async fetchListings() {
       if (!this.user) return;
@@ -244,6 +242,20 @@ export default {
         console.error("Error canceling booking:", err);
       }
     },
+
+  mapDay(day) {
+    const days = {
+      M: "Monday",
+      T: "Tuesday",
+      W: "Wednesday",
+      Th: "Thursday",
+      F: "Friday",
+      Sa: "Saturday",
+      Su: "Sunday"
+    };
+    return days[day] || day;
+  }
+},
 
     formatDate(date) {
       if (!date) return "";
@@ -313,7 +325,8 @@ export default {
       }
     }
   }
-};</script>
+
+</script>
 
 
 <style scoped>

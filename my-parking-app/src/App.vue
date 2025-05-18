@@ -12,9 +12,9 @@
       <div class="nav-links">
         <router-link to="/home" v-if="user">Home</router-link>
         <router-link to="/finn-parkering" v-if="user">Find Parking</router-link>
-        <router-link to="/faq" v-if="user">FAQ</router-link>
+        <router-link to="/listings" v-if="user">Listings</router-link>
         <router-link to="/register-parking-1" v-if="user">Register Parking</router-link>
-        <router-link to="/ads" v-if="user">Ads</router-link>
+        <router-link to="/faq" v-if="user">FAQ</router-link>
       </div>
 
       <div class="right-controls" v-if="user">
