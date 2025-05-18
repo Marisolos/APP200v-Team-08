@@ -27,10 +27,8 @@
         aria-label="Parking listing"
       >
         <div class="ad-details">
-          <h3 class="ad-title">
-            Listing #{{ ad.customId }} — published {{ formatDateOnly(ad.createdAt) }}
-          </h3>
-          <p class="ad-address">{{ ad.address }}</p>
+          <h3 class="ad-title">{{ ad.address }}</h3>
+          <p class="ad-subtitle">Published {{ formatDateOnly(ad.createdAt) }}</p>
           <p class="ad-address"><strong>Price:</strong> {{ ad.price }} kr ({{ ad.paymentPeriod }})</p>
           <p class="ad-address"><strong>Available:</strong> {{ ad.availableWeekdays }} | {{ ad.startTime }}–{{ ad.endTime }}</p>
           <div class="ad-book">
@@ -141,30 +139,29 @@ watch: {
 },
   methods: {
     async fetchAds() {
-      const querySnapshot = await getDocs(collection(db, "listings"));
-      this.allAds = querySnapshot.docs.map(doc => {
-        const data = doc.data();
-        return {
-          id: doc.id,
-          customId: this.generateListingNumber(),
-          ...data,
-          createdAt: data.createdAt?.toDate?.() || new Date()
-        };
-      });
-      this.updateVisibleAds();
-    },
+  const querySnapshot = await getDocs(collection(db, "listings"));
+  this.allAds = querySnapshot.docs.map(doc => {
+    const data = doc.data();
+    return {
+      id: doc.id,
+      ...data,
+      createdAt: data.createdAt?.toDate?.() || new Date()
+    };
+  });
+  this.updateVisibleAds();
+},
     getAvailableDays(ad) {
   const allDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
   const value = ad.availableWeekdays?.trim();
 
   if (!value) {
-    // ✅ No days defined? Treat as "all days available"
+    // No days defined? Treat as "all days available"
     return allDays;
   }
 
   const lower = value.toLowerCase();
 
-  // ✅ Handle format: "Every day (except Saturday, Sunday)"
+  // Handle format: "Every day (except Saturday, Sunday)"
   if (lower.includes("every day")) {
     if (lower.includes("except")) {
       const exceptPart = lower.split("except")[1]
@@ -177,7 +174,7 @@ watch: {
     return allDays;
   }
 
-  // ✅ Handle format: "Monday,Tuesday,Wednesday"
+  // Handle format: "Monday,Tuesday,Wednesday"
   return value.split(",").map(day => day.trim());
 },
 updateVisibleAds() {
@@ -194,15 +191,11 @@ updateVisibleAds() {
   }
 
   const end = this.currentPage * this.adsPerPage;
-  this.visibleAds = sortedAds.slice(0, end); // ✅ Use sortedAds, not filteredAds here
-}
-,
+  this.visibleAds = sortedAds.slice(0, end);
+},
     loadMore() {
       this.currentPage++;
       this.updateVisibleAds();
-    },
-    generateListingNumber() {
-      return Math.floor(1000 + Math.random() * 9000);
     },
     formatDateOnly(date) {
       if (!date) return "N/A";
@@ -439,6 +432,13 @@ updateVisibleAds() {
   border-radius: 8px;
   border: 1px solid #ccc;
 }
+
+.ad-subtitle {
+  font-size: 14px;
+  color: #777;
+  margin-bottom: 8px;
+}
+
 
 </style>
 
