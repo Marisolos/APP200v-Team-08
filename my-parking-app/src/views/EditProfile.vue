@@ -192,56 +192,55 @@ export default {
     }
   },
   methods: {
+  async fetchListings() {
+    if (!this.user) return;
+    this.loadingListings = true;
+    try {
+      const q = query(
+        collection(db, "listings"),
+        where("ownerId", "==", this.user.uid)
+      );
 
-    async fetchListings() {
-      if (!this.user) return;
-      this.loadingListings = true;
-      try {
-        const q = query(
-          collection(db, "listings"),
-          where("ownerId", "==", this.user.uid)
-        );
+      const querySnapshot = await getDocs(q);
+      this.listings = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+    } catch (err) {
+      console.error("Error fetching listings:", err);
+    } finally {
+      this.loadingListings = false;
+    }
+  },
 
-        const querySnapshot = await getDocs(q);
-        this.listings = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-      } catch (err) {
-        console.error("Error fetching listings:", err);
-      } finally {
-        this.loadingListings = false;
-      }
-    },
+  async fetchParkingHistory() {
+    if (!this.user) return;
+    this.loadingHistory = true;
+    try {
+      const q = query(
+        collection(db, "bookings"),
+        where("renterId", "==", this.user.uid)
+      );
+      const snapshot = await getDocs(q);
+      this.parkingHistory = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+    } catch (err) {
+      console.error("Error fetching parking history:", err);
+    } finally {
+      this.loadingHistory = false;
+    }
+  },
 
-    async fetchParkingHistory() {
-      if (!this.user) return;
-      this.loadingHistory = true;
-      try {
-        const q = query(
-          collection(db, "bookings"),
-          where("renterId", "==", this.user.uid)
-        );
-        const snapshot = await getDocs(q);
-        this.parkingHistory = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-      } catch (err) {
-        console.error("Error fetching parking history:", err);
-      } finally {
-        this.loadingHistory = false;
-      }
-    },
-
-    async cancelBooking(bookingId) {
-      try {
-        await deleteDoc(doc(db, "bookings", bookingId));
-        this.parkingHistory = this.parkingHistory.filter(b => b.id !== bookingId);
-      } catch (err) {
-        console.error("Error canceling booking:", err);
-      }
-    },
+  async cancelBooking(bookingId) {
+    try {
+      await deleteDoc(doc(db, "bookings", bookingId));
+      this.parkingHistory = this.parkingHistory.filter(b => b.id !== bookingId);
+    } catch (err) {
+      console.error("Error canceling booking:", err);
+    }
+  },
 
   mapDay(day) {
     const days = {
@@ -254,78 +253,77 @@ export default {
       Su: "Sunday"
     };
     return days[day] || day;
-  }
-},
+  },
 
-    formatDate(date) {
-      if (!date) return "";
-      return new Intl.DateTimeFormat("en-GB", {
-        dateStyle: "short",
-        timeStyle: "medium"
-      }).format(date);
-    },
+  formatDate(date) {
+    if (!date) return "";
+    return new Intl.DateTimeFormat("en-GB", {
+      dateStyle: "short",
+      timeStyle: "medium"
+    }).format(date);
+  },
 
-    onFileChange(e) {
-      if (this.isGoogleUser) return;
-      const file = e.target.files[0];
-      if (file && file.size > 2 * 1024 * 1024) {
-        alert("Image must be smaller than 2MB.");
-        return;
-      }
-      this.photoFile = file;
-      if (file) this.previewUrl = URL.createObjectURL(file);
-    },
+  onFileChange(e) {
+    if (this.isGoogleUser) return;
+    const file = e.target.files[0];
+    if (file && file.size > 2 * 1024 * 1024) {
+      alert("Image must be smaller than 2MB.");
+      return;
+    }
+    this.photoFile = file;
+    if (file) this.previewUrl = URL.createObjectURL(file);
+  },
 
-    async updateProfile() {
-      this.submitted = true;
+  async updateProfile() {
+    this.submitted = true;
 
-      const nameValid = /^[A-Za-z]+$/;
-      const phoneValid = /^\+?\d{7,15}$/;
-      const emailValid = /.+@.+\..+/;
+    const nameValid = /^[A-Za-z]+$/;
+    const phoneValid = /^\+?\d{7,15}$/;
+    const emailValid = /.+@.+\..+/;
 
-      if (
-        (this.firstName && !nameValid.test(this.firstName)) ||
-        (this.lastName && !nameValid.test(this.lastName)) ||
-        (this.phone && !phoneValid.test(this.phone)) ||
-        (this.email && !emailValid.test(this.email)) ||
-        (this.address && this.address.length < 3)
-      ) {
-        return;
-      }
+    if (
+      (this.firstName && !nameValid.test(this.firstName)) ||
+      (this.lastName && !nameValid.test(this.lastName)) ||
+      (this.phone && !phoneValid.test(this.phone)) ||
+      (this.email && !emailValid.test(this.email)) ||
+      (this.address && this.address.length < 3)
+    ) {
+      return;
+    }
 
-      if (!this.isGoogleUser && this.newPassword && this.newPassword.length < 6) {
-        return;
-      }
+    if (!this.isGoogleUser && this.newPassword && this.newPassword.length < 6) {
+      return;
+    }
 
-      if (!this.isGoogleUser && this.newPassword && this.newPassword !== this.confirmPassword) {
-        return;
-      }
+    if (!this.isGoogleUser && this.newPassword && this.newPassword !== this.confirmPassword) {
+      return;
+    }
 
-      const auth = getAuth();
-      const user = auth.currentUser;
-      const displayName = `${this.firstName} ${this.lastName}`;
-      const updates = { displayName };
+    const auth = getAuth();
+    const user = auth.currentUser;
+    const displayName = `${this.firstName} ${this.lastName}`;
+    const updates = { displayName };
 
-      try {
-        if (this.photoFile) {
-          const reader = new FileReader();
-          reader.onloadend = async () => {
-            updates.photoURL = reader.result;
-            await updateProfile(user, updates);
-            alert("Profile updated!");
-          };
-          reader.readAsDataURL(this.photoFile);
-        } else {
+    try {
+      if (this.photoFile) {
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          updates.photoURL = reader.result;
           await updateProfile(user, updates);
           alert("Profile updated!");
-        }
-      } catch (err) {
-        console.error("Error updating profile:", err);
-        alert("Failed to update profile.");
+        };
+        reader.readAsDataURL(this.photoFile);
+      } else {
+        await updateProfile(user, updates);
+        alert("Profile updated!");
       }
+    } catch (err) {
+      console.error("Error updating profile:", err);
+      alert("Failed to update profile.");
     }
   }
-
+}
+};
 </script>
 
 

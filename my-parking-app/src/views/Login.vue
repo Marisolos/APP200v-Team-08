@@ -33,6 +33,8 @@
       </div>
     </div>
   </div>
+
+
 </template>
 
 <script>
@@ -40,6 +42,7 @@ import { auth, provider } from "../firebase";
 import { signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
 
 export default {
+
   name: "UserLogin",
   data() {
     return {
@@ -47,6 +50,7 @@ export default {
       password: "",
     };
   },
+
   methods: {
     async signInWithGoogle() {
       try {
