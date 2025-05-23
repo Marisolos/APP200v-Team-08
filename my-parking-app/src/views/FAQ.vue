@@ -1,26 +1,36 @@
 <template>
   <div class="faq-container">
-    <h2 class="section-title">Frequently Asked Questions</h2>
-    <div class="animation-wrapper">
-      <canvas ref="carCanvas" class="car-canvas" width="700" height="60"></canvas>
-  </div>
+    <canvas ref="carCanvas" class="car-canvas-background" width="400" height="200"></canvas>
 
-    <div v-for="(item, index) in faqs" :key="index" class="faq-item">
+    <h2 class="section-title">Frequently Asked Questions</h2>
+
+    <div class="faq-search">
+      <input
+        type="text"
+        placeholder="Search questions..."
+        v-model="searchQuery"
+        class="faq-search-input"
+      />
+    </div>
+
+    <div
+      v-for="(item, index) in filteredFaqs"
+      :key="index"
+      class="faq-item"
+    >
       <div class="faq-question" @click="toggle(index)">
         {{ item.question }}
         <span class="arrow" :class="{ open: activeIndex === index }">▼</span>
       </div>
       <transition name="fade-slide">
-  <div v-if="activeIndex === index" class="faq-answer">
-    {{ item.answer }}
-  </div>
-
-</transition>
+        <div v-if="activeIndex === index" class="faq-answer">
+          {{ item.answer }}
+        </div>
+      </transition>
     </div>
   </div>
-
-  
 </template>
+
 
 <script>
 export default {
@@ -28,6 +38,7 @@ export default {
   data() {
     return {
       activeIndex: null,
+      searchQuery: "",
       faqs: [
         {
           question: "How do I rent a parking spot?",
@@ -53,134 +64,114 @@ export default {
     };
   },
 
-  mounted() {
+ mounted() {
   const canvas = this.$refs.carCanvas;
   const ctx = canvas.getContext("2d");
 
   const car = new Image();
-  car.src = require('@/assets/logo.png'); 
+  car.src = require('@/assets/car.png');
 
   car.onload = () => {
-    
-  const carWidth = 60;
-  const carHeight = (car.height / car.width) * carWidth;
+    const carWidth = 300;
+    const carHeight = (car.height / car.width) * carWidth;
 
-  const smokes = [];
-  let isWaiting = false;
-  let waitStart = null;
-  const waitDuration = 1200; // ms
+    // ✅ Define cloud ONCE outside animate
+    const cloud = {
+  x: 250,               // move to the left
+  baseY: 50,           // vertical position
+  size: 30,            // larger
+  phase: Math.random() * Math.PI * 2
+};
 
-// Generate multiple clouds
-const clouds = Array.from({ length: 3 }, () => ({
-  x: Math.random() * canvas.width,
-  y: 5 + Math.random() * 15,
-  speed: 0.1 + Math.random() * 0.15,
-  size: 20 + Math.random() * 15
-}));
+const cloud2 = {
+  x: canvas.width - 70,  // move to the right
+  baseY: 70,             // slightly lower
+  size: 18,              // smaller
+  phase: Math.random() * Math.PI * 2
+};
 
-  function animate(timestamp) {
+    function animate(timestamp) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw drifting clouds
+
 ctx.save();
-clouds.forEach(cloud => {
-  ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
-  ctx.beginPath();
-  ctx.ellipse(cloud.x, cloud.y, cloud.size, cloud.size * 0.6, 0, 0, Math.PI * 2);
-  ctx.ellipse(cloud.x + cloud.size * 0.6, cloud.y + 2, cloud.size * 0.6, cloud.size * 0.4, 0, 0, Math.PI * 2);
-  ctx.ellipse(cloud.x - cloud.size * 0.6, cloud.y + 2, cloud.size * 0.6, cloud.size * 0.4, 0, 0, Math.PI * 2);
-  ctx.fill();
 
-  cloud.x += cloud.speed;
-  if (cloud.x > canvas.width + 50) {
-    cloud.x = -60;
-    cloud.y = 5 + Math.random() * 15;
-  }
-});
-ctx.restore();
+const x = cloud.x;
+const y = cloud.baseY + Math.sin(timestamp / 400 + cloud.phase) * 2;
+const s = cloud.size;
 
-    const fadeDistance = 100;
-    let opacity = 1;
+ctx.fillStyle = "white";
+ctx.strokeStyle = "#385464";
+ctx.lineWidth = 2;
+ctx.shadowColor = "rgba(0, 0, 0, 0.05)";
+ctx.shadowBlur = 4;
 
-    if (x > canvas.width - fadeDistance) {
-      opacity = 1 - (x - (canvas.width - fadeDistance)) / fadeDistance;
-    } else if (x < fadeDistance - carWidth) {
-      opacity = x / fadeDistance;
-    }
-
-    // Bubble-style smoke generation
-    if (!isWaiting && Math.random() < 0.1) {
-      smokes.push({
-        x: x + carWidth - 8,
-        y: 35 + Math.random() * 4,
-        radius: 4 + Math.random() * 6,
-        opacity: 0.4 + Math.random() * 0.2
-      });
-    }
-
-    // Draw car
-    if (!isWaiting) {
-      ctx.globalAlpha = Math.max(0, Math.min(1, opacity));
-
-ctx.restore();
-
-// headlight glow
-ctx.save();
-ctx.fillStyle = "rgba(255, 255, 150, 0.5)";
 ctx.beginPath();
-ctx.ellipse(x - 4, 36, 8, 4, 0, 0, Math.PI * 2); 
+// Left hump
+ctx.arc(x - s * 0.6, y, s * 0.6, Math.PI * 0.5, Math.PI * 1.5);
+// Top hump
+ctx.arc(x, y - s * 0.6, s * 0.9, Math.PI, 0);
+// Right hump
+ctx.arc(x + s * 0.6, y, s * 0.6, Math.PI * 1.5, Math.PI * 0.5);
+ctx.closePath();
+
 ctx.fill();
+ctx.stroke();
+
 ctx.restore();
 
+// Draw second smaller cloud
+ctx.save();
 
-ctx.drawImage(car, x, 10, carWidth, carHeight);
+const x2 = cloud2.x;
+const y2 = cloud2.baseY + Math.sin(timestamp / 400 + cloud2.phase) * 2;
+const s2 = cloud2.size;
 
+ctx.fillStyle = "white";
+ctx.strokeStyle = "#385464";
+ctx.lineWidth = 2;
+ctx.shadowColor = "rgba(0, 0, 0, 0.05)";
+ctx.shadowBlur = 4;
 
-      ctx.globalAlpha = 1;
-    }
+ctx.beginPath();
+// Left hump
+ctx.arc(x2 - s2 * 0.6, y2, s2 * 0.6, Math.PI * 0.5, Math.PI * 1.5);
+// Top hump
+ctx.arc(x2, y2 - s2 * 0.6, s2 * 0.9, Math.PI, 0);
+// Right hump
+ctx.arc(x2 + s2 * 0.6, y2, s2 * 0.6, Math.PI * 1.5, Math.PI * 0.5);
+ctx.closePath();
 
-    // Draw bubbles
-    for (let i = smokes.length - 1; i >= 0; i--) {
-      const s = smokes[i];
-      ctx.fillStyle = `rgba(240, 240, 240, ${s.opacity})`;
-      ctx.beginPath();
-      ctx.arc(s.x, s.y, s.radius, 0, Math.PI * 2);
-      ctx.fill();
+ctx.fill();
+ctx.stroke();
 
-      s.x -= 0.3; // drift left
-      s.y += 0.05; // gentle rise
-      s.opacity -= 0.01;
-      s.radius += 0.1;
+ctx.restore();
 
-      if (s.opacity <= 0) smokes.splice(i, 1);
-    }
+      // 🚗 Draw car
+      ctx.drawImage(car, 10, canvas.height - carHeight - 5, carWidth, carHeight);
 
-    // Delay re-entry after car exits
-    if (!isWaiting) {
-      x -= speed;
-      if (x + carWidth < 0) {
-        isWaiting = true;
-        waitStart = timestamp;
-      }
-    } else if (timestamp - waitStart > waitDuration) {
-      x = canvas.width;
-      isWaiting = false;
+      requestAnimationFrame(animate);
     }
 
     requestAnimationFrame(animate);
-  }
-
-  let x = canvas.width;
-  const speed = 1.2;
-  requestAnimationFrame(animate);
-};
-
+  };
 },
+
   methods: {
     toggle(index) {
       this.activeIndex = this.activeIndex === index ? null : index;
     }
+  },
+computed: {
+  filteredFaqs() {
+    if (!this.searchQuery.trim()) return this.faqs;
+    const q = this.searchQuery.toLowerCase();
+    return this.faqs.filter(
+      item =>
+        item.question.toLowerCase().includes(q) ||
+        item.answer.toLowerCase().includes(q)
+    );
   }
+}
 };
 </script>
 
@@ -190,6 +181,8 @@ ctx.drawImage(car, x, 10, carWidth, carHeight);
   padding: 40px 20px;
   font-family: "Nunito Sans", sans-serif;
   min-height: 100vh;
+    position: relative;
+  z-index: 1;
 }
 
 .section-title {
@@ -250,19 +243,38 @@ ctx.drawImage(car, x, 10, carWidth, carHeight);
   transform: translateY(0);
 }
 
-.animation-wrapper {
+.bottom-animation {
+  display: flex;
+  justify-content: flex-start; /* or center or end */
+  margin-top: 30px; /* pushes it down visually */
+}
+
+.car-canvas-background {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  width: 400px;
+  height: 200px;
+  z-index: 0; /* behind content */
+  pointer-events: none;
+}
+
+.faq-search {
   display: flex;
   justify-content: center;
-  margin-bottom: 10px;
+  margin: 20px 0;
 }
 
-.car-canvas {
+.faq-search-input {
   width: 100%;
-  max-width: 700px;
-  height: 60px;
-  background: transparent;
+  max-width: 600px;
+  padding: 12px 16px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
+
 
 </style>
-
-  
