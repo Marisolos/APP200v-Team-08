@@ -82,6 +82,7 @@ import { getAuth } from 'firebase/auth'
 import { addDoc, collection, serverTimestamp, getDocs, query, where } from 'firebase/firestore'
 
 
+
 const form = useRegisterFormStore()
 const currentStep = 4;
 const totalSteps = 4;
@@ -98,7 +99,7 @@ const publishListing = async () => {
   const listingAddress = `${form.adresse} ${form.postnummer} ${form.poststed}`;
 
   // Step 1: Check for duplicate
-  const listingsRef = collection(db, "listings");
+  const listingsRef = collection(db, "parkingSpots");
   const q = query(
     listingsRef,
     where("ownerId", "==", user.uid),
@@ -116,12 +117,44 @@ const publishListing = async () => {
   const timestamp = new Date().toLocaleString();
   const listingTitle = `Listing ${listingNumber} - ${timestamp}`;
 
+  console.log("✅ Klar til å publisere:", {
+  title: listingTitle,
+      name: form.adresse,
+      ownerId: user.uid,
+      address: listingAddress,
+      lat: form.lat,  
+      lng: form.lng,
+      price: form.pris,
+      paymentPeriod: form.betalingsperiode,
+      availableWeekdays: form.daysDescription,
+      startTime: form.startTime,
+      endTime: form.endTime,
+      repeatPattern: form.repeatPattern,
+      rules: form.rules,
+      hasCamera: form.hasCamera,
+      hasCharger: form.hasCharger,
+      hasHeating: form.hasHeating,
+      roofChecked: form.roofChecked,
+      dimensions: {
+        length: form.length,
+        width: form.width,
+        height: form.roofChecked ? form.height : null
+      },
+      accessType: form.accessType,
+      guidelines: form.guidelines || "",
+      additionalInfo: form.additionalInfo || "",
+      createdAt: serverTimestamp()
+});
+
   // Step 3: Save to Firestore
   try {
     await addDoc(listingsRef, {
       title: listingTitle,
+      name: form.adresse,
       ownerId: user.uid,
       address: listingAddress,
+      lat: form.lat,  
+      lng: form.lng,
       price: form.pris,
       paymentPeriod: form.betalingsperiode,
       availableWeekdays: form.daysDescription,
