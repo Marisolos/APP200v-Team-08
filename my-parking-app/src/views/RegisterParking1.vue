@@ -10,9 +10,15 @@
 
     <div class="form-section">
       <label>Adresse</label>
-      <span v-if="errors.adresse && touched.adresse" class="error-text"> // må fylles ut</span>
-      <input type="text" class="text-input" :class="{ 'input-error': errors.adresse && touched.adresse }"
-             placeholder="Adresse" v-model="form.adresse" @blur="touched.adresse = true" @focus="errors.adresse = false"/>
+      <span v-if="errors.adresse && touched.adresse" class="error-text">
+        {{ errors.adresseMessage || 'Adresse må fylles ut' }}
+      </span>
+      <AddressAutocomplete 
+      @blur="touched.adresse = true"
+      @focus="errors.adresse = false"
+      :errors="errors"
+      :touched="touched"
+      @postcode-updated="hentPoststed"/>
     </div>
 
     <div class="form-section">
@@ -67,24 +73,37 @@
           <div class="progress-fill" :style="{ width: `${(currentStep / totalSteps) * 100}%` }"></div>
         </div> <span class="progress-text">Side {{ currentStep }} av {{ totalSteps }}</span>
       </div>
-      <router-link to="/register-parking-2">
         <button class="search-button" @click="validateAndGoToNextPage">Neste side →</button>
-      </router-link>
-    </div>
+      </div>
   </div>
 </template>
 
 <script>
 import { useRegisterFormStore } from '@/stores/registerForm'
-import postnummerData from "@/assets/postnummer.json";
+import postnummerData from '@/assets/postnummer.json'
+import AddressAutocomplete from '@/components/AddressAutocomplete.vue'
+import { watch } from 'vue'
 
 export default {
-  name: "RegisterParking1",
+  name: 'RegisterParking1',
+  components: { AddressAutocomplete },
   data() {
+    const form = useRegisterFormStore()
+
+    watch(() => form.adresse, (nyVerdi) => {
+      if (!nyVerdi || nyVerdi.trim().length < 3) {
+        form.lat = null
+        form.lng = null
+        form.postnummer = ''
+        form.poststed = ''
+      }
+    })
+
     return {
-      form: useRegisterFormStore(),
+      form,
       errors: {
         adresse: false,
+        adresseMessage: '',
         postnummer: false,
         pris: false
       },
@@ -95,33 +114,62 @@ export default {
       },
       currentStep: 1,
       totalSteps: 4
-    };
+    }
   },
   methods: {
     hentPoststed() {
-    this.form.postnummer = this.form.postnummer.replace(/\D/g, "").slice(0, 4);
-    const sted = postnummerData[this.form.postnummer];
-    this.form.poststed = sted || "";
-  },
-    validerPris() {
-      this.form.pris = this.form.pris.replace(/\D/g, "").replace(/^0+(?=\d)/, "");
+      this.form.postnummer = this.form.postnummer.replace(/\D/g, '').slice(0, 4)
+      const sted = postnummerData[this.form.postnummer]
+      this.form.poststed = sted || ''
     },
-    validateAndGoToNextPage() {
-      this.errors.adresse = !this.form.adresse;
-      this.errors.postnummer = !this.form.postnummer || !this.form.poststed; //HER ER ERROR MAYBE?
-      this.errors.pris = !this.form.pris;
-      
+    validerPris() {
+      this.form.pris = this.form.pris.replace(/\D/g, '').replace(/^0+(?=\d)/, '')
+    },
+    async validateAndGoToNextPage() {
+      this.errors.adresse = !this.form.adresse || this.form.adresse.trim().length < 3
+      this.errors.postnummer = !this.form.postnummer || !this.form.poststed
+      this.errors.pris = !this.form.pris
 
-      this.touched.adresse = true;
-      this.touched.postnummer = true;
-      this.touched.pris = true;
+      this.touched.adresse = true
+      this.touched.postnummer = true
+      this.touched.pris = true
 
       if (!this.errors.adresse && !this.errors.postnummer && !this.errors.pris) {
-        this.$router.push('/register-parking-2');
+        const erGyldigAdresse = await this.validateAdresseMedNominatim()
+        if (!erGyldigAdresse) {
+          this.errors.adresse = true
+          this.errors.adresseMessage = 'Ugyldig adresse. Vennligst velg en fra listen.'
+          return
+        }
+
+        this.$router.push('/register-parking-2')
+      }
+    },
+    async validateAdresseMedNominatim() {
+      const query = `${this.form.adresse} ${this.form.postnummer} ${this.form.poststed}`
+      const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&addressdetails=1`
+
+      try {
+        const res = await fetch(url)
+        const data = await res.json()
+
+        if (!data.length || !data[0].address) return false
+
+        const found = data[0].address
+        const input = this.form.adresse.trim().toLowerCase()
+        const foundRoad = found.road?.toLowerCase() || ''
+        const foundHouse = found.house_number?.toLowerCase() || ''
+
+        const normalizedFound = `${foundRoad} ${foundHouse}`.trim()
+
+        return input === normalizedFound
+      } catch (err) {
+        console.error('Validering feilet:', err)
+        return false
       }
     }
   }
-};
+}
 </script>
 
 <style scoped>

@@ -49,12 +49,23 @@
         </label>
 
         <label>
-          <h3>Mail</h3>
-          <input type="email" v-model="email" placeholder="example@hotmail.com" />
-          <p class="validation-error" v-if="submitted && email && !/.+@.+\..+/.test(email)">
-            Please enter a valid email address.
-          </p>
-        </label>
+        
+  <h3>Mail</h3>
+  <input
+    type="email"
+    v-model="email"
+    placeholder="example@hotmail.com"
+    :disabled="isGoogleUser"
+  />
+  <p class="validation-error" v-if="submitted && email && !/.+@.+\..+/.test(email)">
+    Please enter a valid email address.
+  </p>
+</label>
+
+<p v-if="isGoogleUser" class="google-warning">
+  You're signed in with Google. 
+</p>
+
 
         <h3>Change password</h3>
 
@@ -96,45 +107,61 @@
 
     <!-- PARKING HISTORY TAB -->
     <div v-if="currentTab === 'history'" class="secondary-tab">
-    <h2>Parking History</h2>
-    <div v-if="loadingHistory">Loading...</div>
-    <div v-else-if="parkingHistory.length === 0">You haven’t booked any spots yet.</div>
-    <ul v-else>
-  <li v-for="booking in parkingHistory" :key="booking.id">
-    <div>
-      <strong>{{ booking.address }}</strong><br />
-      {{ mapDay(booking.day) }} — {{ booking.startTime }} to {{ booking.endTime }}
+      <h2>Parking History</h2>
+      <div v-if="loadingHistory">Loading your parking history...</div>
+      <div v-else-if="parkingHistory.length === 0">
+        You haven’t booked any spots yet.
+      </div>
+      <div v-else>
+        <div
+          v-for="booking in parkingHistory"
+          :key="booking.id"
+          class="listing-card"
+        >
+          <p><strong>Address:</strong> {{ booking.address }}</p>
+          <p><strong>Booked:</strong> {{ formatDate(booking.createdAt?.toDate?.()) }}</p>
+          <p><strong>Time:</strong> {{ booking.startTime }}–{{ booking.endTime }} on {{ booking.day }}</p>
+          
+        </div>
+      </div>
     </div>
-    <button @click="cancelBooking(booking.id)" class="cancel-btn">Cancel</button>
-  </li>
-</ul>
-
-  </div>
 
     <!-- RENTAL HISTORY TAB -->
     <div v-if="currentTab === 'rentalHistory'" class="secondary-tab">
       <h2>Rental History</h2>
-      <p>This section will show who has rented your spots. (Feature coming soon!)</p>
+      <div v-if="loadingRentalHistory">Loading rental history...</div>
+      <div v-else-if="rentalHistory.length === 0">No rentals yet.</div>
+      <div v-else>
+        <div
+          v-for="rental in rentalHistory"
+          :key="rental.id"
+          class="listing-card"
+        >
+          <p><strong>Rented to:</strong> {{ rental.renterName || rental.renterId }}</p>
+          <p><strong>Address:</strong> {{ rental.address }}</p>
+          <p><strong>Booked:</strong> {{ formatDate(rental.timestamp) }}</p>
+          <p><strong>Time:</strong> {{ rental.startTime }}–{{ rental.endTime }} on {{ rental.day }}</p>
+        </div>
+      </div>
     </div>
 
     <!-- MY LISTINGS TAB -->
-    <div v-if="currentTab === 'listings'" class="secondary-tab">  <h2>My Listings</h2>
-
-  <div v-if="loadingListings">Loading your listings...</div>
-  <div v-else-if="listings.length === 0">You haven’t listed any spots yet.</div>
-  <div v-else class="listing-cards">
-    <div v-for="(listing, index) in listings" :key="listing.id" class="listing-card">
-  <h3>Listing {{ index + 1 }} - {{ formatDate(listing.createdAt?.toDate?.()) }}</h3>
-
-      <p><strong>Address:</strong> {{ listing.address }}</p>
-      <p><strong>Price:</strong> {{ listing.price }} kr ({{ listing.paymentPeriod }})</p>
-      <p><strong>Available:</strong> {{ listing.availableWeekdays }} | {{ listing.startTime }}–{{ listing.endTime }}</p>
+    <div v-if="currentTab === 'listings'" class="secondary-tab">
+      <h2>My Listings</h2>
+      <div v-if="loadingListings">Loading your listings...</div>
+      <div v-else-if="listings.length === 0">You haven’t listed any spots yet.</div>
+      <div v-else class="listing-cards">
+        <div v-for="(listing, index) in listings" :key="listing.id" class="listing-card">
+          <h3>Listing {{ index + 1 }} - {{ formatDate(listing.createdAt?.toDate?.()) }}</h3>
+          <p><strong>Address:</strong> {{ listing.address }}</p>
+          <p><strong>Price:</strong> {{ listing.price }} kr ({{ listing.paymentPeriod }})</p>
+          <p><strong>Available:</strong> {{ listing.availableWeekdays }} | {{ listing.startTime }}–{{ listing.endTime }}</p>
+        </div>
+      </div>
     </div>
   </div>
-</div>
-
-  </div>
 </template>
+
 
 <script>
 import { getAuth, updateProfile } from "firebase/auth";
@@ -144,8 +171,10 @@ import {
   query,
   where,
   deleteDoc,
+  getDoc,
   doc
 } from "firebase/firestore";
+
 import { db } from "@/firebase";
 import defaultAvatar from "@/assets/default-user.png";
 
@@ -171,6 +200,7 @@ export default {
 
       listings: [],
       loadingListings: false,
+      rentalHistory: [],
       parkingHistory: [],
       loadingHistory: false
     };
@@ -189,9 +219,17 @@ export default {
 
       this.fetchListings();
       this.fetchParkingHistory();
+      this.fetchRentalHistory();
     }
   },
   methods: {
+  
+  cancelBooking(bookingId) {
+    const booking = this.parkingHistory.find(b => b.id === bookingId);
+    if (booking) {
+      booking.canceled = true;
+    }
+  },
   async fetchListings() {
     if (!this.user) return;
     this.loadingListings = true;
@@ -200,6 +238,7 @@ export default {
         collection(db, "listings"),
         where("ownerId", "==", this.user.uid)
       );
+
 
       const querySnapshot = await getDocs(q);
       this.listings = querySnapshot.docs.map((doc) => ({
@@ -212,6 +251,13 @@ export default {
       this.loadingListings = false;
     }
   },
+  formatDate(date) {
+  if (!date) return "N/A";
+  return new Intl.DateTimeFormat("en-GB", {
+    dateStyle: "short",
+    timeStyle: "short"
+  }).format(date.toDate ? date.toDate() : date);
+},
 
   async fetchParkingHistory() {
     if (!this.user) return;
@@ -231,6 +277,49 @@ export default {
     } finally {
       this.loadingHistory = false;
     }
+  },
+
+  async fetchRentalHistory() {
+  if (!this.user) return;
+  this.loadingRentalHistory = true;
+  try {
+    const q = query(
+      collection(db, "rentalHistory"),
+      where("ownerId", "==", this.user.uid)
+    );
+    const snapshot = await getDocs(q);
+    const records = await Promise.all(
+      snapshot.docs.map(async doc => {
+        const data = doc.data();
+        let renterName = "Unknown";
+
+        try {
+          const userDoc = await getDoc(doc(db, "users", data.renterId));
+          if (userDoc.exists()) {
+            const userInfo = userDoc.data();
+            renterName = userInfo.displayName || userInfo.firstName || userInfo.email || data.renterId;
+          }
+        } catch (err) {
+          console.warn("Failed to fetch renter info:", err);
+        }
+
+        return {
+          id: doc.id,
+          ...data,
+          renterName
+        };
+      })
+    );
+    this.rentalHistory = records;
+  } catch (err) {
+    console.error("Error fetching rental history:", err);
+  } finally {
+    this.loadingRentalHistory = false;
+  }
+
+
+},
+
   },
 
   async cancelBooking(bookingId) {
@@ -323,7 +412,9 @@ export default {
     }
   }
 }
-};
+
+
+
 </script>
 
 
