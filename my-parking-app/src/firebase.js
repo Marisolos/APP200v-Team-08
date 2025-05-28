@@ -1,6 +1,14 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
-import { getFirestore } from "firebase/firestore"; // Import Firestore
+import {
+  getFirestore,
+  serverTimestamp,
+  collection,
+  addDoc,
+  query,
+  where,
+  getDocs
+} from "firebase/firestore";
 
 // Your Firebase configuration
 const firebaseConfig = {
@@ -15,16 +23,25 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize Authentication & Google Sign-In
+// Initialize Firebase Authentication and Firestore
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
+const db = getFirestore(app);
 
-// Ensure Redirect Mode is Correct
+// Optional: Force Google account selection each time
 provider.setCustomParameters({
   prompt: "select_account"
 });
 
-// Initialize Firestore Database
-const db = getFirestore(app); 
-
-export { auth, provider, db }; // Export Firestore (db)
+// Export everything you need in one go
+export {
+  auth,
+  provider,
+  db,
+  serverTimestamp,
+  collection,
+  addDoc,
+  query,
+  where,
+  getDocs
+};

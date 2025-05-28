@@ -99,7 +99,7 @@ const publishListing = async () => {
   const listingAddress = `${form.adresse} ${form.postnummer} ${form.poststed}`;
 
   // Step 1: Check for duplicate
-  const listingsRef = collection(db, "parkingSpots");
+  const listingsRef = collection(db, "listings");
   const q = query(
     listingsRef,
     where("ownerId", "==", user.uid),
