@@ -84,7 +84,15 @@
           You're signed in with Google. To change your password, please visit your Google Account settings.
         </p>
 
-        <button class="submit-btn" @click="updateProfile">Save</button>
+        <button
+  type="button"
+  class="submit-btn"
+  @click="updateProfile"
+  :disabled="updatingProfile"
+>
+  {{ updatingProfile ? "Saving..." : "Save" }}
+</button>
+
       </div>
 
       <!-- RIGHT SECTION -->
@@ -164,15 +172,24 @@
 
 
 <script>
-import { getAuth, updateProfile } from "firebase/auth";
+import {
+  getAuth,
+  updateProfile,
+  updateEmail,
+  updatePassword,
+  EmailAuthProvider,
+  reauthenticateWithCredential
+} from "firebase/auth";
+
 import {
   collection,
   getDocs,
   query,
   where,
-  deleteDoc,
   getDoc,
-  doc
+  doc as docRef,
+  setDoc,
+  updateDoc
 } from "firebase/firestore";
 
 import { db } from "@/firebase";
@@ -197,6 +214,8 @@ export default {
       isGoogleUser: false,
       submitted: false,
       currentTab: "profile",
+      updatingProfile: false,
+      loadingRentalHistory: false,
 
       listings: [],
       loadingListings: false,
@@ -205,31 +224,143 @@ export default {
       loadingHistory: false
     };
   },
-  mounted() {
+  
+async mounted() {
+  const auth = getAuth();
+  this.user = auth.currentUser;
+
+  if (this.user) {
+    const providerData = this.user.providerData[0];
+    this.isGoogleUser = providerData.providerId === "google.com";
+
+    this.firstName = this.user.displayName?.split(" ")[0] || "";
+    this.lastName = this.user.displayName?.split(" ")[1] || "";
+    this.email = this.user.email || "";
+
+    // Load phone and address from Firestore
+    try {
+      const userDocRef = docRef(db, "users", this.user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+      if (userDocSnap.exists()) {
+        const userData = userDocSnap.data();
+        this.address = userData.address || "";
+        this.phone = userData.phone || "";
+      }
+    } catch (err) {
+      console.warn("Failed to load user extra fields:", err);
+    }
+
+    this.fetchListings();
+    this.fetchParkingHistory();
+    this.fetchRentalHistory();
+  }
+},
+
+methods: {
+  async updateProfile() {
+    this.submitted = true;
+    this.updatingProfile = true;
+
+    const nameValid = /^[A-Za-z]+$/;
+    const phoneValid = /^\+?\d{7,15}$/;
+    const emailValid = /.+@.+\..+/;
+
+    if (
+      (this.firstName && !nameValid.test(this.firstName)) ||
+      (this.lastName && !nameValid.test(this.lastName)) ||
+      (this.phone && !phoneValid.test(this.phone)) ||
+      (this.email && !emailValid.test(this.email)) ||
+      (this.address && this.address.length < 3)
+    ) {
+      this.updatingProfile = false;
+      return;
+    }
+
+    if (!this.isGoogleUser && this.newPassword && this.newPassword.length < 6) {
+      this.updatingProfile = false;
+      return;
+    }
+
+    if (!this.isGoogleUser && this.newPassword && this.newPassword !== this.confirmPassword) {
+      this.updatingProfile = false;
+      return;
+    }
+
     const auth = getAuth();
-    this.user = auth.currentUser;
+    const user = auth.currentUser;
+    const displayName = `${this.firstName} ${this.lastName}`;
+    const updates = { displayName };
 
-    if (this.user) {
-      const providerData = this.user.providerData[0];
-      this.isGoogleUser = providerData.providerId === "google.com";
+    try {
+      if (!this.isGoogleUser && this.oldPassword && this.newPassword) {
+        const credential = EmailAuthProvider.credential(this.email, this.oldPassword);
+        await reauthenticateWithCredential(user, credential);
+        await updatePassword(user, this.newPassword);
+      }
 
-      this.firstName = this.user.displayName?.split(" ")[0] || "";
-      this.lastName = this.user.displayName?.split(" ")[1] || "";
-      this.email = this.user.email || "";
+      if (!this.isGoogleUser && this.email !== user.email) {
+        await updateEmail(user, this.email);
+      }
 
-      this.fetchListings();
-      this.fetchParkingHistory();
-      this.fetchRentalHistory();
+      if (this.photoFile) {
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          try {
+            updates.photoURL = reader.result;
+            await updateProfile(user, updates);
+            alert("Profile updated!");
+          } catch (err) {
+            console.error("Error updating profile:", err);
+            alert("Failed to update profile.");
+          } finally {
+            this.updatingProfile = false;
+          }
+        };
+        reader.readAsDataURL(this.photoFile);
+        return;
+      } else {
+        await updateProfile(user, updates);
+        alert("Profile updated!");
+      }
+    } catch (err) {
+      console.error("Error updating profile:", err);
+      alert("Failed to update profile.");
+    } finally {
+      try {
+  const userDocRef = docRef(db, "users", user.uid);
+  const userDocSnap = await getDoc(userDocRef);
+
+  if (userDocSnap.exists()) {
+    // Update existing document
+    await updateDoc(userDocRef, {
+      address: this.address,
+      phone: this.phone
+    });
+  } else {
+    // Create new document
+    await setDoc(userDocRef, {
+      address: this.address,
+      phone: this.phone,
+      uid: user.uid,
+      createdAt: new Date()
+    });
+  }
+} catch (err) {
+  console.error("Error writing user info to Firestore:", err);
+  alert("Failed to save address/phone.");
+}
+
+      this.updatingProfile = false;
     }
   },
-  methods: {
-  
+
   cancelBooking(bookingId) {
     const booking = this.parkingHistory.find(b => b.id === bookingId);
     if (booking) {
       booking.canceled = true;
     }
   },
+
   async fetchListings() {
     if (!this.user) return;
     this.loadingListings = true;
@@ -238,7 +369,6 @@ export default {
         collection(db, "listings"),
         where("ownerId", "==", this.user.uid)
       );
-
 
       const querySnapshot = await getDocs(q);
       this.listings = querySnapshot.docs.map((doc) => ({
@@ -251,13 +381,6 @@ export default {
       this.loadingListings = false;
     }
   },
-  formatDate(date) {
-  if (!date) return "N/A";
-  return new Intl.DateTimeFormat("en-GB", {
-    dateStyle: "short",
-    timeStyle: "short"
-  }).format(date.toDate ? date.toDate() : date);
-},
 
   async fetchParkingHistory() {
     if (!this.user) return;
@@ -280,54 +403,45 @@ export default {
   },
 
   async fetchRentalHistory() {
-  if (!this.user) return;
-  this.loadingRentalHistory = true;
-  try {
-    const q = query(
-      collection(db, "rentalHistory"),
-      where("ownerId", "==", this.user.uid)
-    );
-    const snapshot = await getDocs(q);
-    const records = await Promise.all(
-      snapshot.docs.map(async doc => {
-        const data = doc.data();
-        let renterName = "Unknown";
-
-        try {
-          const userDoc = await getDoc(doc(db, "users", data.renterId));
-          if (userDoc.exists()) {
-            const userInfo = userDoc.data();
-            renterName = userInfo.displayName || userInfo.firstName || userInfo.email || data.renterId;
-          }
-        } catch (err) {
-          console.warn("Failed to fetch renter info:", err);
-        }
-
-        return {
-          id: doc.id,
-          ...data,
-          renterName
-        };
-      })
-    );
-    this.rentalHistory = records;
-  } catch (err) {
-    console.error("Error fetching rental history:", err);
-  } finally {
-    this.loadingRentalHistory = false;
-  }
-
-
-},
-
-  },
-
-  async cancelBooking(bookingId) {
+    if (!this.user) return;
+    this.loadingRentalHistory = true;
     try {
-      await deleteDoc(doc(db, "bookings", bookingId));
-      this.parkingHistory = this.parkingHistory.filter(b => b.id !== bookingId);
+      const q = query(
+        collection(db, "rentalHistory"),
+        where("ownerId", "==", this.user.uid)
+      );
+      const snapshot = await getDocs(q);
+      const records = await Promise.all(
+        snapshot.docs.map(async doc => {
+          const data = doc.data();
+          let renterName = "Unknown";
+
+          if (!data.renterId) {
+            return { id: doc.id, ...data, renterName };
+          }
+
+          try {
+            const userDoc = await getDoc(docRef(db, "users", data.renterId));
+            if (userDoc.exists()) {
+              const userInfo = userDoc.data();
+              renterName = userInfo.displayName || userInfo.firstName || userInfo.email || data.renterId;
+            }
+          } catch (err) {
+            console.warn("Failed to fetch renter info:", err);
+          }
+
+          return {
+            id: doc.id,
+            ...data,
+            renterName
+          };
+        })
+      );
+      this.rentalHistory = records;
     } catch (err) {
-      console.error("Error canceling booking:", err);
+      console.error("Error fetching rental history:", err);
+    } finally {
+      this.loadingRentalHistory = false;
     }
   },
 
@@ -345,11 +459,11 @@ export default {
   },
 
   formatDate(date) {
-    if (!date) return "";
+    if (!date) return "N/A";
     return new Intl.DateTimeFormat("en-GB", {
       dateStyle: "short",
-      timeStyle: "medium"
-    }).format(date);
+      timeStyle: "short"
+    }).format(date.toDate ? date.toDate() : date);
   },
 
   onFileChange(e) {
@@ -360,59 +474,10 @@ export default {
       return;
     }
     this.photoFile = file;
-    if (file) this.previewUrl = URL.createObjectURL(file);
-  },
-
-  async updateProfile() {
-    this.submitted = true;
-
-    const nameValid = /^[A-Za-z]+$/;
-    const phoneValid = /^\+?\d{7,15}$/;
-    const emailValid = /.+@.+\..+/;
-
-    if (
-      (this.firstName && !nameValid.test(this.firstName)) ||
-      (this.lastName && !nameValid.test(this.lastName)) ||
-      (this.phone && !phoneValid.test(this.phone)) ||
-      (this.email && !emailValid.test(this.email)) ||
-      (this.address && this.address.length < 3)
-    ) {
-      return;
-    }
-
-    if (!this.isGoogleUser && this.newPassword && this.newPassword.length < 6) {
-      return;
-    }
-
-    if (!this.isGoogleUser && this.newPassword && this.newPassword !== this.confirmPassword) {
-      return;
-    }
-
-    const auth = getAuth();
-    const user = auth.currentUser;
-    const displayName = `${this.firstName} ${this.lastName}`;
-    const updates = { displayName };
-
-    try {
-      if (this.photoFile) {
-        const reader = new FileReader();
-        reader.onloadend = async () => {
-          updates.photoURL = reader.result;
-          await updateProfile(user, updates);
-          alert("Profile updated!");
-        };
-        reader.readAsDataURL(this.photoFile);
-      } else {
-        await updateProfile(user, updates);
-        alert("Profile updated!");
-      }
-    } catch (err) {
-      console.error("Error updating profile:", err);
-      alert("Failed to update profile.");
-    }
+    this.previewUrl = URL.createObjectURL(file);
   }
 }
-
+}
 
 
 </script>
