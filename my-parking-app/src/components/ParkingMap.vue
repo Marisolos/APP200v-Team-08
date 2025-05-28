@@ -82,7 +82,7 @@ export default {
   // Henter alle parkeringsplasser fra Firebase når komponenten lastes
   async created() {
     try {
-      const snapshot = await getDocs(collection(db, 'parkingSpots'));
+      const snapshot = await getDocs(collection(db, 'listings'));
       this.allParkingSpotsFromFirebase = snapshot.docs.map(doc => {
         const data = doc.data();
         return {
