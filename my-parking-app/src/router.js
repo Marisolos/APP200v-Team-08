@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
-import { getAuth } from "firebase/auth";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 import Login from "@/views/Login.vue";
 import Home from "@/views/Home.vue";
@@ -23,7 +23,7 @@ const routes = [
   { path: "/edit-profile", name: "EditProfile", component: EditProfile, meta: { requiresAuth: true } },
   { path: "/listings", component: Listings, meta: { requiresAuth: true } },
   { path: "/faq", component: FAQ, meta: { requiresAuth: true } },
-  { path: "/:pathMatch(.*)*", redirect: "/login" } // Keep this LAST
+  { path: "/:pathMatch(.*)*", redirect: "/login" } // Catch-all route
 ];
 
 const router = createRouter({
@@ -34,15 +34,30 @@ const router = createRouter({
   }
 });
 
-router.beforeEach((to, from, next) => {
-  const user = getAuth().currentUser;
+// Wait until Firebase Auth is ready before handling routes
+let authResolved = false;
 
-  if (to.meta.requiresAuth && !user) {
-    next("/login");
-  } else if (to.path === "/login" && user) {
-    next("/home");
+router.beforeEach((to, from, next) => {
+  const proceed = () => {
+    const user = getAuth().currentUser;
+
+    if (to.meta.requiresAuth && !user) {
+      next("/login");
+    } else if (to.path === "/login" && user) {
+      next("/home");
+    } else {
+      next();
+    }
+  };
+
+  if (!authResolved) {
+    const unsubscribe = onAuthStateChanged(getAuth(), () => {
+      authResolved = true;
+      unsubscribe(); // Prevent future calls
+      proceed();
+    });
   } else {
-    next();
+    proceed();
   }
 });
 

@@ -81,7 +81,7 @@
 </template>
 
 <script>
-import { collection, getDocs, addDoc, query, where } from "firebase/firestore";
+import { collection, getDocs, addDoc, query, where, serverTimestamp } from "firebase/firestore";
 import { db } from "@/firebase";
 import { getAuth } from "firebase/auth";
 
@@ -228,6 +228,19 @@ updateVisibleAds() {
 
       const bookingsRef = collection(db, "bookings");
 
+      await addDoc(collection(db, "rentalHistory"), {
+        ownerId: this.selectedAd.ownerId,
+        renterId: user.uid,
+        listingId: this.selectedAd.id,
+        address: this.selectedAd.address,
+        price: this.selectedAd.price,
+        day: this.bookingDay,
+        startTime: this.bookingStart,
+        endTime: this.bookingEnd,
+        timestamp: serverTimestamp()
+    });
+
+
       // Fetch existing bookings for that listing and weekday
       const q = query(
         bookingsRef,
@@ -264,6 +277,8 @@ updateVisibleAds() {
       this.cancelBooking();
     }
   },
+
+
   mounted() {
     this.fetchAds();
   }
