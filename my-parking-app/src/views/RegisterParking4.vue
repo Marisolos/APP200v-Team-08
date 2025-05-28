@@ -5,7 +5,7 @@
     <!-- Bilder -->
     <div class="form-section">
       <h3>Overview</h3>
-      <div class="image-preview-container">
+      <div v-if="form.images && form.images.length" class="image-preview-container">
         <div v-for="(image, index) in form.images" :key="index" :class="['image-preview', { 'large': index === 0 }]">
           <img :src="image.url" :alt="'Bilde ' + (index + 1)" />
         </div>
@@ -76,16 +76,16 @@
 </template>
 
 <script setup>
-import { useRegisterFormStore } from '@/stores/registerForm'
-import { db } from '@/firebase'
-import { getAuth } from 'firebase/auth'
-import { addDoc, collection, serverTimestamp, getDocs, query, where } from 'firebase/firestore'
+import { useRegisterFormStore } from '@/stores/registerForm';
+import { db } from '@/firebase';
+import { getAuth } from 'firebase/auth';
+import { addDoc, collection, serverTimestamp, getDocs, query, where } from 'firebase/firestore';
 
-
-
-const form = useRegisterFormStore()
+const form = useRegisterFormStore();
 const currentStep = 4;
 const totalSteps = 4;
+
+const Maps_API_KEY = 'AIzaSyCfis5H1oNKr-NuNbBXOlwMaMhUY-5Mk5w'; //API-key for Google Maps
 
 const publishListing = async () => {
   const auth = getAuth();
@@ -96,12 +96,63 @@ const publishListing = async () => {
     return;
   }
 
-  const listingAddress = `${form.adresse} ${form.postnummer} ${form.poststed}`;
+  const listingAddress = `${form.adresse}, ${form.postnummer} ${form.poststed}`;
 
-  // Step 1: Check for duplicate
+//Author: Hedvig
+// Initialize variables to store latitude and longitude
+  let lat = null;
+  let lng = null;
+
+// Check that the address is not empty or just whitespace
+  if (listingAddress.trim()) {
+    
+    // Encode the address so it can be safely used in a URL
+    const encodedAddress = encodeURIComponent(listingAddress);
+    const geocodingUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodedAddress}&key=${Maps_API_KEY}`;
+
+    try {
+      const res = await fetch(geocodingUrl); // Send a request to the Google Maps Geocoding API
+      const data = await res.json(); // Parse the response as JSON
+
+    // Check if the API response was successful and contains results
+      if (data.status === 'OK' && data.results.length > 0) {
+        lat = data.results[0].geometry.location.lat;
+        lng = data.results[0].geometry.location.lng;
+      } else {
+        //If geocoding was not successful
+        alert(`Could not find coordinates for "${listingAddress}".`);
+        console.error("Geocoding failed:", data.status, data.error_message || "");
+        return;
+      }
+    } catch (error) {
+      // Handle any errors that occurred during the fetch call
+      console.error("Error during geocoding:", error);
+      alert("Failed to geocode address.");
+      return;
+    }
+  } else {
+    // Alert if the address field is empty or invalid
+    alert("Address information is missing.");
+    return;
+  }
+
+//Check for duplicate 
   const listingsRef = collection(db, "listings");
-  const q = query(
+  const qListings = query(
     listingsRef,
+    where("ownerId", "==", user.uid),
+    where("address", "==", listingAddress)
+  );
+  const querySnapshotListings = await getDocs(qListings);
+
+  if (!querySnapshotListings.empty) {
+    alert("You already have a listing with this address.");
+    return;
+  }
+
+  const parkingSpotsCollectionRef = collection(db, "parkingSpots");
+  const q = query(
+    parkingSpotsCollectionRef,
     where("ownerId", "==", user.uid),
     where("address", "==", listingAddress)
   );
@@ -111,71 +162,51 @@ const publishListing = async () => {
     alert("You already have a listing with this address.");
     return;
   }
+//Author: Hedvig
 
-  // Step 2: Add title
+
+//Add title
   const listingNumber = Math.floor(Math.random() * 100000);
   const timestamp = new Date().toLocaleString();
   const listingTitle = `Listing ${listingNumber} - ${timestamp}`;
 
-  console.log("✅ Klar til å publisere:", {
-  title: listingTitle,
-      name: form.adresse,
-      ownerId: user.uid,
-      address: listingAddress,
-      lat: form.lat,  
-      lng: form.lng,
-      price: form.pris,
-      paymentPeriod: form.betalingsperiode,
-      availableWeekdays: form.daysDescription,
-      startTime: form.startTime,
-      endTime: form.endTime,
-      repeatPattern: form.repeatPattern,
-      rules: form.rules,
-      hasCamera: form.hasCamera,
-      hasCharger: form.hasCharger,
-      hasHeating: form.hasHeating,
-      roofChecked: form.roofChecked,
-      dimensions: {
-        length: form.length,
-        width: form.width,
-        height: form.roofChecked ? form.height : null
-      },
-      accessType: form.accessType,
-      guidelines: form.guidelines || "",
-      additionalInfo: form.additionalInfo || "",
-      createdAt: serverTimestamp()
-});
+//Save to Firestore
+  const commonListingData = {
+    title: listingTitle,
+    ownerId: user.uid,
+    address: listingAddress,
+    price: form.pris,
+    paymentPeriod: form.betalingsperiode,
+    availableWeekdays: form.daysDescription,
+    startTime: form.startTime,
+    endTime: form.endTime,
+    repeatPattern: form.repeatPattern,
+    rules: form.rules,
+    hasCamera: form.hasCamera,
+    hasCharger: form.hasCharger,
+    hasHeating: form.hasHeating,
+    roofChecked: form.roofChecked,
+    dimensions: {
+      length: form.length,
+      width: form.width,
+      height: form.roofChecked ? form.height : null
+    },
+    accessType: form.accessType,
+    guidelines: form.guidelines || "",
+    additionalInfo: form.additionalInfo || "",
+    createdAt: serverTimestamp(),
+  };
 
-  // Step 3: Save to Firestore
+//Author: Hedvig
   try {
-    await addDoc(listingsRef, {
-      title: listingTitle,
-      name: form.adresse,
-      ownerId: user.uid,
-      address: listingAddress,
-      lat: form.lat,  
-      lng: form.lng,
-      price: form.pris,
-      paymentPeriod: form.betalingsperiode,
-      availableWeekdays: form.daysDescription,
-      startTime: form.startTime,
-      endTime: form.endTime,
-      repeatPattern: form.repeatPattern,
-      rules: form.rules,
-      hasCamera: form.hasCamera,
-      hasCharger: form.hasCharger,
-      hasHeating: form.hasHeating,
-      roofChecked: form.roofChecked,
-      dimensions: {
-        length: form.length,
-        width: form.width,
-        height: form.roofChecked ? form.height : null
-      },
-      accessType: form.accessType,
-      guidelines: form.guidelines || "",
-      additionalInfo: form.additionalInfo || "",
-      createdAt: serverTimestamp()
+    await addDoc(parkingSpotsCollectionRef, {
+      ...commonListingData,
+      lat: lat,
+      lng: lng,
     });
+
+    await addDoc(listingsRef, commonListingData);
+//Author: Hedvig
 
     alert("Listing published!");
   } catch (err) {
@@ -183,8 +214,6 @@ const publishListing = async () => {
     alert("Failed to publish listing.");
   }
 };
-
-
 </script>
 
 <style scoped>
