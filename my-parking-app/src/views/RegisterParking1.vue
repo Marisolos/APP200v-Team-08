@@ -178,14 +178,14 @@ export default {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  padding-top: 20px;
+  padding-top: 40px;
   background-color: #ABC89D;
   min-height: 100vh;
   font-family: "Nunito Sans", sans-serif;
 }
 
 .page-title {
-  font-size: 28px;
+  font-size: 36px;
   color: #ffffff;
   margin-bottom: 20px;
 }

@@ -189,7 +189,7 @@ computed: {
   text-align: center;
   color: #fff;
   margin-bottom: 10px;
-  font-size: 28px;
+  font-size: 36px;
 }
 
 .faq-item {
