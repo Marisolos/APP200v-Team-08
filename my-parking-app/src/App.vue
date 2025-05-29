@@ -11,7 +11,6 @@
       </div>
 
       <div class="nav-links">
-        <router-link to="/home" v-if="user">Home</router-link>
         <router-link to="/finn-parkering" v-if="user">Find Parking</router-link>
         <router-link to="/listings" v-if="user">Listings</router-link>
         <router-link to="/register-parking-1" v-if="user">Register Parking</router-link>
@@ -48,17 +47,18 @@ export default {
       scrollUpDistance: 0
     };
   },
-  created() {
-    const auth = getAuth();
-    onAuthStateChanged(auth, (user) => {
-      this.user = user;
-      this.isReady = true;
+created() {
+  const auth = getAuth();
+  onAuthStateChanged(auth, (user) => {
+    this.user = user;
+    this.isReady = true;
 
-      if (this.$route && this.$route.path === "/login" && user) {
-        this.$router.push("/home");
-      }
-    });
-  },
+    // Redirect away from login if already authenticated
+    if (user && this.$route.path === "/login") {
+      this.$router.push("/finn-parkering");
+    }
+  });
+},
   mounted() {
     window.addEventListener("scroll", this.handleScroll);
   },

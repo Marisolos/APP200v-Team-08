@@ -121,6 +121,8 @@
           <p><strong>Address:</strong> {{ booking.address }}</p>
           <p><strong>Booked:</strong> {{ formatDate(booking.createdAt?.toDate?.()) }}</p>
           <p><strong>Time:</strong> {{ booking.startTime }}–{{ booking.endTime }} on {{ booking.day }}</p>
+
+           <button class="cancel-btn" @click="cancelBooking(booking.id)">Cancel</button>
           
         </div>
       </div>
@@ -224,12 +226,16 @@ export default {
   },
   methods: {
   
-  cancelBooking(bookingId) {
-    const booking = this.parkingHistory.find(b => b.id === bookingId);
-    if (booking) {
-      booking.canceled = true;
-    }
-  },
+async cancelBooking(bookingId) {
+  if (!confirm("Are you sure you want to cancel this booking?")) return;
+
+  try {
+    await deleteDoc(doc(db, "bookings", bookingId));
+    this.parkingHistory = this.parkingHistory.filter(b => b.id !== bookingId);
+  } catch (err) {
+    console.error("Error canceling booking:", err);
+  }
+},
   async fetchListings() {
     if (!this.user) return;
     this.loadingListings = true;
@@ -430,7 +436,8 @@ export default {
 h1 {
   text-align: center;
   font-size: 36px;
-  margin-bottom: 40px;
+  margin-bottom: 20px;
+  color: white;
 }
 
 /* UPDATED MAIN NAVIGATION BUTTONS */

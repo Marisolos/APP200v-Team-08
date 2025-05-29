@@ -1,7 +1,9 @@
 <template>
   <section class="ads-container">
+    <div class="ads-content">
+    <h2 class="ads-title">Available Parking Spots</h2>
+
     <div class="ads-wrapper">
-      <h2 class="ads-title">Available Parking Spots</h2>
 
       <input
   type="text"
@@ -76,6 +78,7 @@
       >
         <button @click="loadMore" class="load-more-btn">Load More</button>
       </div>
+    </div>
     </div>
   </section>
 </template>
@@ -293,6 +296,13 @@ updateVisibleAds() {
   justify-content: center;
 }
 
+.ads-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: -10px;
+}
+
 .ads-wrapper {
   background-color: white;
   width: 800px;
@@ -302,10 +312,10 @@ updateVisibleAds() {
 }
 
 .ads-title {
+  color: white;
   text-align: center;
-  font-family: "Nunito Sans", sans-serif;
-  margin-bottom: 30px;
-  color: #333;
+  font-size: 36px;
+  margin-bottom: 20px;
 }
 
 .ad-card {
