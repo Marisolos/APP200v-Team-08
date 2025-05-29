@@ -158,6 +158,35 @@
           <p><strong>Address:</strong> {{ listing.address }}</p>
           <p><strong>Price:</strong> {{ listing.price }} kr ({{ listing.paymentPeriod }})</p>
           <p><strong>Available:</strong> {{ listing.availableWeekdays }} | {{ listing.startTime }}–{{ listing.endTime }}</p>
+        
+          <button class="submit-btn" @click="openEditModal(listing)">Edit</button>
+
+<div v-if="editingListing" class="edit-modal">
+  <h3>Edit Listing</h3>
+  <label>Address:
+    <input v-model="editForm.address" />
+  </label>
+  <label>Price:
+    <input type="number" v-model="editForm.price" />
+  </label>
+  <label>Start Time:
+    <input type="time" v-model="editForm.startTime" />
+  </label>
+  <label>End Time:
+    <input type="time" v-model="editForm.endTime" />
+  </label>
+  <label>Payment Period:
+    <input v-model="editForm.paymentPeriod" />
+  </label>
+
+
+<div style="display: flex; gap: 10px; margin-top: 10px;">
+  <button class="submit-btn" @click="saveEdit">Save</button>
+  <button class="cancel-btn" @click="cancelEdit">Cancel</button>
+  </div>
+</div>
+
+
         </div>
       </div>
     </div>
@@ -167,6 +196,7 @@
 
 <script>
 import { getAuth, updateProfile } from "firebase/auth";
+import { updateDoc } from "firebase/firestore";
 import {
   collection,
   getDocs,
@@ -202,6 +232,14 @@ export default {
 
       listings: [],
       loadingListings: false,
+      editingListing: null,
+editForm: {
+  address: '',
+  price: '',
+  startTime: '',
+  endTime: '',
+  paymentPeriod: ''
+},
       rentalHistory: [],
       parkingHistory: [],
       loadingHistory: false
@@ -263,6 +301,36 @@ async cancelBooking(bookingId) {
     dateStyle: "short",
     timeStyle: "short"
   }).format(date.toDate ? date.toDate() : date);
+},
+
+openEditModal(listing) {
+  this.editingListing = listing;
+  this.editForm = {
+    address: listing.address || '',
+    price: listing.price || '',
+    startTime: listing.startTime || '',
+    endTime: listing.endTime || '',
+    paymentPeriod: listing.paymentPeriod || ''
+  };
+},
+
+async saveEdit() {
+  if (!this.editingListing?.id) return;
+  try {
+    const docRef = doc(db, "listings", this.editingListing.id);
+    await updateDoc(docRef, { ...this.editForm });
+
+    // Update local list without re-fetching
+    Object.assign(this.editingListing, this.editForm);
+    this.editingListing = null;
+  } catch (err) {
+    console.error("Failed to update listing:", err);
+    alert("Could not save changes.");
+  }
+},
+
+cancelEdit() {
+  this.editingListing = null;
 },
 
   async fetchParkingHistory() {
@@ -562,21 +630,20 @@ label h3 {
 }
 
 .submit-btn {
-  background-color: #fcd29f;
-  color: #333;
-  font-weight: bold;
-  padding: 12px 25px;
+  background-color: #5B8D8A; 
+  color: white;
+  padding: 10px 20px;
+  border-radius: 20px;
   border: none;
-  border-radius: 8px;
-  margin-top: 20px;
   cursor: pointer;
-  align-self: flex-start;
+  font-weight: bold;
   transition: background 0.3s ease;
+  margin-top: 10px;
 }
 
 .submit-btn:hover {
-  background-color: #fcab64;
-  color: white;
+  background-color: #FED28D; 
+  color: #333;
 }
 
 .google-warning {
@@ -648,6 +715,45 @@ label h3 {
 
 .secondary-tab h2 {
   margin-bottom: 30px; /* Adjust the value as needed */
+}
+
+.edit-modal {
+  background: #ffffff;
+  padding: 20px;
+  margin-top: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 10px; /* 👈 This adds spacing between the elements */
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.edit-modal label {
+  display: flex;
+  flex-direction: column;
+  font-weight: bold;
+  color: #333;
+}
+
+.edit-modal input {
+  margin-top: 5px;
+  padding: 10px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #f9f9f9;
+}
+
+.edit-modal button {
+  width: fit-content;
+  margin-top: 10px;
+}
+
+.edit-modal .submit-btn {
+  margin-right: 10px;
 }
 
 
