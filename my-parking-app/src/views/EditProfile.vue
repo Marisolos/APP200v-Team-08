@@ -2,7 +2,7 @@
   <div class="profile-page">
     <h1>My profile</h1>
 
-    <!-- MAIN NAVIGATION TABS -->
+    <!-- === MAIN NAVIGATION TABS === -->
     <div class="main-nav">
       <button :class="{ active: currentTab === 'profile' }" @click="currentTab = 'profile'">Profile</button>
       <button :class="{ active: currentTab === 'history' }" @click="currentTab = 'history'">Parking History</button>
@@ -10,7 +10,7 @@
       <button :class="{ active: currentTab === 'listings' }" @click="currentTab = 'listings'">My Listings</button>
     </div>
 
-    <!-- PROFILE TAB -->
+    <!-- === PROFILE TAB === -->
     <div v-if="currentTab === 'profile'" class="profile-content">
       <!-- LEFT SECTION -->
       <div class="form-left">
@@ -49,26 +49,16 @@
         </label>
 
         <label>
-        
-  <h3>Mail</h3>
-  <input
-    type="email"
-    v-model="email"
-    placeholder="example@hotmail.com"
-    :disabled="isGoogleUser"
-  />
-  <p class="validation-error" v-if="submitted && email && !/.+@.+\..+/.test(email)">
-    Please enter a valid email address.
-  </p>
-</label>
+          <h3>Mail</h3>
+          <input type="email" v-model="email" placeholder="example@hotmail.com" :disabled="isGoogleUser" />
+          <p class="validation-error" v-if="submitted && email && !/.+@.+\..+/.test(email)">
+            Please enter a valid email address.
+          </p>
+        </label>
 
-<p v-if="isGoogleUser" class="google-warning">
-  You're signed in with Google. 
-</p>
-
+        <p v-if="isGoogleUser" class="google-warning">You're signed in with Google.</p>
 
         <h3>Change password</h3>
-
         <input type="password" placeholder="Old password" v-model="oldPassword" :disabled="isGoogleUser" />
         <input type="password" placeholder="New password" v-model="newPassword" :disabled="isGoogleUser" />
         <input type="password" placeholder="Confirm password" v-model="confirmPassword" :disabled="isGoogleUser" />
@@ -91,7 +81,7 @@
       <div class="form-right">
         <h3>Profile picture</h3>
         <div class="profile-pic-box">
-          <img :src="previewUrl || user?.photoURL || defaultAvatar" alt="img" class="profile-pic" />
+          <img :src="previewUrl || user?.photoURL || defaultAvatar" alt="Profile picture" class="profile-pic" />
         </div>
 
         <input type="file" id="picUpload" @change="onFileChange" :disabled="isGoogleUser" hidden />
@@ -105,40 +95,28 @@
       </div>
     </div>
 
-    <!-- PARKING HISTORY TAB -->
+    <!-- === PARKING HISTORY TAB === -->
     <div v-if="currentTab === 'history'" class="secondary-tab">
       <h2>Parking History</h2>
       <div v-if="loadingHistory">Loading your parking history...</div>
-      <div v-else-if="parkingHistory.length === 0">
-        You haven’t booked any spots yet.
-      </div>
+      <div v-else-if="parkingHistory.length === 0">You haven’t booked any spots yet.</div>
       <div v-else>
-        <div
-          v-for="booking in parkingHistory"
-          :key="booking.id"
-          class="listing-card"
-        >
+        <div v-for="booking in parkingHistory" :key="booking.id" class="listing-card">
           <p><strong>Address:</strong> {{ booking.address }}</p>
           <p><strong>Booked:</strong> {{ formatDate(booking.createdAt?.toDate?.()) }}</p>
           <p><strong>Time:</strong> {{ booking.startTime }}–{{ booking.endTime }} on {{ booking.day }}</p>
-
-           <button class="cancel-btn" @click="cancelBooking(booking.id)">Cancel</button>
-          
+          <button class="cancel-btn" @click="cancelBooking(booking.id)">Cancel</button>
         </div>
       </div>
     </div>
 
-    <!-- RENTAL HISTORY TAB -->
+    <!-- === RENTAL HISTORY TAB === -->
     <div v-if="currentTab === 'rentalHistory'" class="secondary-tab">
       <h2>Rental History</h2>
       <div v-if="loadingRentalHistory">Loading rental history...</div>
       <div v-else-if="rentalHistory.length === 0">No rentals yet.</div>
       <div v-else>
-        <div
-          v-for="rental in rentalHistory"
-          :key="rental.id"
-          class="listing-card"
-        >
+        <div v-for="rental in rentalHistory" :key="rental.id" class="listing-card">
           <p><strong>Rented to:</strong> {{ rental.renterName || rental.renterId }}</p>
           <p><strong>Address:</strong> {{ rental.address }}</p>
           <p><strong>Booked:</strong> {{ formatDate(rental.timestamp) }}</p>
@@ -147,56 +125,60 @@
       </div>
     </div>
 
-    <!-- MY LISTINGS TAB -->
+    <!-- === MY LISTINGS TAB === -->
     <div v-if="currentTab === 'listings'" class="secondary-tab">
       <h2>My Listings</h2>
       <div v-if="loadingListings">Loading your listings...</div>
       <div v-else-if="listings.length === 0">You haven’t listed any spots yet.</div>
       <div v-else class="listing-cards">
         <div v-for="(listing, index) in listings" :key="listing.id" class="listing-card">
-          <h3>Listing {{ index + 1 }} - {{ formatDate(listing.createdAt?.toDate?.()) }}</h3>
+          <h3>Listing {{ index + 1 }}</h3>
+          <p class="published-date">Published on: {{ formatDate(listing.createdAt?.toDate?.()) }}</p>
           <p><strong>Address:</strong> {{ listing.address }}</p>
-          <p><strong>Price:</strong> {{ listing.price }} kr ({{ listing.paymentPeriod }})</p>
-          <p><strong>Available:</strong> {{ listing.availableWeekdays }} | {{ listing.startTime }}–{{ listing.endTime }}</p>
-        
+          <p><strong>Price:</strong> {{ listing.price }} kr /hour</p>
+          <p><strong>Available:</strong> {{ mapWeekdays(listing.availableWeekdays) }} | {{ listing.startTime }}–{{ listing.endTime }}</p>
+
           <button class="submit-btn" @click="openEditModal(listing)">Edit</button>
 
-<div v-if="editingListing" class="edit-modal">
-  <h3>Edit Listing</h3>
-  <label>Address:
-    <input v-model="editForm.address" />
-  </label>
-  <label>Price:
-    <input type="number" v-model="editForm.price" />
-  </label>
-  <label>Start Time:
-    <input type="time" v-model="editForm.startTime" />
-  </label>
-  <label>End Time:
-    <input type="time" v-model="editForm.endTime" />
-  </label>
-  <label>Payment Period:
-    <input v-model="editForm.paymentPeriod" />
-  </label>
+          <!-- === EDIT LISTING MODAL === -->
+          <div v-if="editingListing?.id === listing.id" class="edit-modal">
+            <h3>Edit Listing</h3>
 
+            <label>Available Days:</label>
+            <div class="weekdays-checkboxes">
+              <label v-for="day in allWeekdays" :key="day.value">
+                <input type="checkbox" :value="day.value" v-model="editForm.availableWeekdays" />
+                {{ day.label }}
+              </label>
+            </div>
 
-<div style="display: flex; gap: 10px; margin-top: 10px;">
-  <button class="submit-btn" @click="saveEdit">Save</button>
-  <button class="cancel-btn" @click="cancelEdit">Cancel</button>
-  </div>
-</div>
+            <label>Address:
+              <input v-model="editForm.address" />
+            </label>
+            <label>Price:
+              <input type="number" v-model="editForm.price" />
+            </label>
+            <label>Start Time:
+              <input type="time" v-model="editForm.startTime" />
+            </label>
+            <label>End Time:
+              <input type="time" v-model="editForm.endTime" />
+            </label>
 
-
+            <div style="display: flex; gap: 10px; margin-top: 10px;">
+              <button class="submit-btn" @click="saveEdit">Save</button>
+              <button class="delete-btn" @click="deleteListing(listing.id)">Delete</button>
+              <button class="cancel-btn" @click="cancelEdit">Cancel</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </template>
 
-
 <script>
 import { getAuth, updateProfile } from "firebase/auth";
-import { updateDoc } from "firebase/firestore";
 import {
   collection,
   getDocs,
@@ -204,9 +186,9 @@ import {
   where,
   deleteDoc,
   getDoc,
-  doc
+  doc,
+  updateDoc
 } from "firebase/firestore";
-
 import { db } from "@/firebase";
 import defaultAvatar from "@/assets/default-user.png";
 
@@ -233,13 +215,22 @@ export default {
       listings: [],
       loadingListings: false,
       editingListing: null,
-editForm: {
-  address: '',
-  price: '',
-  startTime: '',
-  endTime: '',
-  paymentPeriod: ''
-},
+      allWeekdays: [
+        { label: "Mon", value: "M" },
+        { label: "Tue", value: "T" },
+        { label: "Wed", value: "W" },
+        { label: "Thu", value: "Th" },
+        { label: "Fri", value: "F" },
+        { label: "Sat", value: "Sa" },
+        { label: "Sun", value: "Su" }
+      ],
+      editForm: {
+        address: '',
+        price: '',
+        startTime: '',
+        endTime: '',
+        availableWeekdays: []
+      },
       rentalHistory: [],
       parkingHistory: [],
       loadingHistory: false
@@ -263,236 +254,245 @@ editForm: {
     }
   },
   methods: {
-  
-async cancelBooking(bookingId) {
-  if (!confirm("Are you sure you want to cancel this booking?")) return;
+    async cancelBooking(bookingId) {
+      if (!confirm("Are you sure you want to cancel this booking?")) return;
+      try {
+        await deleteDoc(doc(db, "bookings", bookingId));
+        this.parkingHistory = this.parkingHistory.filter(b => b.id !== bookingId);
+      } catch (err) {
+        console.error("Error canceling booking:", err);
+      }
+    },
 
-  try {
-    await deleteDoc(doc(db, "bookings", bookingId));
-    this.parkingHistory = this.parkingHistory.filter(b => b.id !== bookingId);
-  } catch (err) {
-    console.error("Error canceling booking:", err);
-  }
-},
-  async fetchListings() {
-    if (!this.user) return;
-    this.loadingListings = true;
-    try {
-      const q = query(
-        collection(db, "listings"),
-        where("ownerId", "==", this.user.uid)
-      );
-
-
-      const querySnapshot = await getDocs(q);
-      this.listings = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-    } catch (err) {
-      console.error("Error fetching listings:", err);
-    } finally {
-      this.loadingListings = false;
-    }
-  },
-  formatDate(date) {
-  if (!date) return "N/A";
-  return new Intl.DateTimeFormat("en-GB", {
-    dateStyle: "short",
-    timeStyle: "short"
-  }).format(date.toDate ? date.toDate() : date);
-},
-
-openEditModal(listing) {
-  this.editingListing = listing;
-  this.editForm = {
-    address: listing.address || '',
-    price: listing.price || '',
-    startTime: listing.startTime || '',
-    endTime: listing.endTime || '',
-    paymentPeriod: listing.paymentPeriod || ''
-  };
-},
-
-async saveEdit() {
-  if (!this.editingListing?.id) return;
-  try {
-    const docRef = doc(db, "listings", this.editingListing.id);
-    await updateDoc(docRef, { ...this.editForm });
-
-    // Update local list without re-fetching
-    Object.assign(this.editingListing, this.editForm);
-    this.editingListing = null;
-  } catch (err) {
-    console.error("Failed to update listing:", err);
-    alert("Could not save changes.");
-  }
-},
-
-cancelEdit() {
-  this.editingListing = null;
-},
-
-  async fetchParkingHistory() {
-    if (!this.user) return;
-    this.loadingHistory = true;
-    try {
-      const q = query(
-        collection(db, "bookings"),
-        where("renterId", "==", this.user.uid)
-      );
-      const snapshot = await getDocs(q);
-      this.parkingHistory = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-    } catch (err) {
-      console.error("Error fetching parking history:", err);
-    } finally {
-      this.loadingHistory = false;
-    }
-  },
-
-  async fetchRentalHistory() {
-  if (!this.user) return;
-  this.loadingRentalHistory = true;
-  try {
-    const q = query(
-      collection(db, "rentalHistory"),
-      where("ownerId", "==", this.user.uid)
-    );
-    const snapshot = await getDocs(q);
-    const records = await Promise.all(
-      snapshot.docs.map(async doc => {
-        const data = doc.data();
-        let renterName = "Unknown";
-
-        try {
-          const userDoc = await getDoc(doc(db, "users", data.renterId));
-          if (userDoc.exists()) {
-            const userInfo = userDoc.data();
-            renterName = userInfo.displayName || userInfo.firstName || userInfo.email || data.renterId;
-          }
-        } catch (err) {
-          console.warn("Failed to fetch renter info:", err);
-        }
-
-        return {
+    async fetchListings() {
+      if (!this.user) return;
+      this.loadingListings = true;
+      try {
+        const q = query(
+          collection(db, "listings"),
+          where("ownerId", "==", this.user.uid)
+        );
+        const querySnapshot = await getDocs(q);
+        this.listings = querySnapshot.docs.map((doc) => ({
           id: doc.id,
-          ...data,
-          renterName
-        };
-      })
-    );
-    this.rentalHistory = records;
-  } catch (err) {
-    console.error("Error fetching rental history:", err);
-  } finally {
-    this.loadingRentalHistory = false;
+          ...doc.data()
+        }));
+      } catch (err) {
+        console.error("Error fetching listings:", err);
+      } finally {
+        this.loadingListings = false;
+      }
+    },
+
+    formatDate(date) {
+      if (!date) return "N/A";
+      return new Intl.DateTimeFormat("en-GB", {
+        dateStyle: "short"
+      }).format(date.toDate ? date.toDate() : date);
+    },
+
+    openEditModal(listing) {
+      this.editingListing = listing;
+      this.editForm = {
+        address: listing.address || '',
+        price: listing.price || '',
+        startTime: listing.startTime || '',
+        endTime: listing.endTime || '',
+        availableWeekdays: listing.availableWeekdays || []
+      };
+    },
+
+    async saveEdit() {
+      if (!this.editingListing?.id) return;
+      try {
+        const docRef = doc(db, "listings", this.editingListing.id);
+        await updateDoc(docRef, { ...this.editForm });
+
+        Object.assign(this.editingListing, this.editForm);
+        this.editingListing = null;
+      } catch (err) {
+        console.error("Failed to update listing:", err);
+        alert("Could not save changes.");
+      }
+    },
+
+    cancelEdit() {
+      this.editingListing = null;
+    },
+
+    async deleteListing(listingId) {
+      if (!confirm("Are you sure you want to delete this listing?")) return;
+      try {
+        await deleteDoc(doc(db, "listings", listingId));
+        this.listings = this.listings.filter(listing => listing.id !== listingId);
+      } catch (err) {
+        console.error("Error deleting listing:", err);
+        alert("Could not delete the listing.");
+      }
+    },
+
+mapWeekdays(codes) {
+  const dayMap = {
+    M: "Monday",
+    T: "Tuesday",
+    W: "Wednesday",
+    Th: "Thursday",
+    F: "Friday",
+    Sa: "Saturday",
+    Su: "Sunday"
+  };
+
+  // If it's a string (e.g. "M,T,W"), split it
+  if (typeof codes === 'string') {
+    codes = codes.split(',').map(code => code.trim());
   }
 
+  // If not an array after that, return empty string
+  if (!Array.isArray(codes)) return '';
 
+  return codes.map(code => dayMap[code] || code).join(', ');
 },
 
-  },
+    async fetchParkingHistory() {
+      if (!this.user) return;
+      this.loadingHistory = true;
+      try {
+        const q = query(
+          collection(db, "bookings"),
+          where("renterId", "==", this.user.uid)
+        );
+        const snapshot = await getDocs(q);
+        this.parkingHistory = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+      } catch (err) {
+        console.error("Error fetching parking history:", err);
+      } finally {
+        this.loadingHistory = false;
+      }
+    },
 
-  async cancelBooking(bookingId) {
-    try {
-      await deleteDoc(doc(db, "bookings", bookingId));
-      this.parkingHistory = this.parkingHistory.filter(b => b.id !== bookingId);
-    } catch (err) {
-      console.error("Error canceling booking:", err);
-    }
-  },
+    async fetchRentalHistory() {
+      if (!this.user) return;
+      this.loadingRentalHistory = true;
+      try {
+        const q = query(
+          collection(db, "rentalHistory"),
+          where("ownerId", "==", this.user.uid)
+        );
+        const snapshot = await getDocs(q);
+        const records = await Promise.all(
+          snapshot.docs.map(async doc => {
+            const data = doc.data();
+            let renterName = "Unknown";
+            try {
+              const userDoc = await getDoc(doc(db, "users", data.renterId));
+              if (userDoc.exists()) {
+                const userInfo = userDoc.data();
+                renterName =
+                  userInfo.displayName ||
+                  userInfo.firstName ||
+                  userInfo.email ||
+                  data.renterId;
+              }
+            } catch (err) {
+              console.warn("Failed to fetch renter info:", err);
+            }
+            return {
+              id: doc.id,
+              ...data,
+              renterName
+            };
+          })
+        );
+        this.rentalHistory = records;
+      } catch (err) {
+        console.error("Error fetching rental history:", err);
+      } finally {
+        this.loadingRentalHistory = false;
+      }
+    },
 
-  mapDay(day) {
-    const days = {
-      M: "Monday",
-      T: "Tuesday",
-      W: "Wednesday",
-      Th: "Thursday",
-      F: "Friday",
-      Sa: "Saturday",
-      Su: "Sunday"
-    };
-    return days[day] || day;
-  },
+    mapDay(day) {
+      const days = {
+        M: "Monday",
+        T: "Tuesday",
+        W: "Wednesday",
+        Th: "Thursday",
+        F: "Friday",
+        Sa: "Saturday",
+        Su: "Sunday"
+      };
+      return days[day] || day;
+    },
 
-  formatDate(date) {
-    if (!date) return "";
-    return new Intl.DateTimeFormat("en-GB", {
-      dateStyle: "short",
-      timeStyle: "medium"
-    }).format(date);
-  },
+    onFileChange(e) {
+      if (this.isGoogleUser) return;
+      const file = e.target.files[0];
+      if (file && file.size > 2 * 1024 * 1024) {
+        alert("Image must be smaller than 2MB.");
+        return;
+      }
+      this.photoFile = file;
+      if (file) this.previewUrl = URL.createObjectURL(file);
+    },
 
-  onFileChange(e) {
-    if (this.isGoogleUser) return;
-    const file = e.target.files[0];
-    if (file && file.size > 2 * 1024 * 1024) {
-      alert("Image must be smaller than 2MB.");
-      return;
-    }
-    this.photoFile = file;
-    if (file) this.previewUrl = URL.createObjectURL(file);
-  },
+    async updateProfile() {
+      this.submitted = true;
 
-  async updateProfile() {
-    this.submitted = true;
+      const nameValid = /^[A-Za-z]+$/;
+      const phoneValid = /^\+?\d{7,15}$/;
+      const emailValid = /.+@.+\..+/;
 
-    const nameValid = /^[A-Za-z]+$/;
-    const phoneValid = /^\+?\d{7,15}$/;
-    const emailValid = /.+@.+\..+/;
+      if (
+        (this.firstName && !nameValid.test(this.firstName)) ||
+        (this.lastName && !nameValid.test(this.lastName)) ||
+        (this.phone && !phoneValid.test(this.phone)) ||
+        (this.email && !emailValid.test(this.email)) ||
+        (this.address && this.address.length < 3)
+      ) {
+        return;
+      }
 
-    if (
-      (this.firstName && !nameValid.test(this.firstName)) ||
-      (this.lastName && !nameValid.test(this.lastName)) ||
-      (this.phone && !phoneValid.test(this.phone)) ||
-      (this.email && !emailValid.test(this.email)) ||
-      (this.address && this.address.length < 3)
-    ) {
-      return;
-    }
+      if (!this.isGoogleUser && this.newPassword && this.newPassword.length < 6) {
+        return;
+      }
 
-    if (!this.isGoogleUser && this.newPassword && this.newPassword.length < 6) {
-      return;
-    }
+      if (!this.isGoogleUser && this.newPassword && this.newPassword !== this.confirmPassword) {
+        return;
+      }
 
-    if (!this.isGoogleUser && this.newPassword && this.newPassword !== this.confirmPassword) {
-      return;
-    }
+      const auth = getAuth();
+      const user = auth.currentUser;
+      const displayName = `${this.firstName} ${this.lastName}`;
+      const updates = { displayName };
 
-    const auth = getAuth();
-    const user = auth.currentUser;
-    const displayName = `${this.firstName} ${this.lastName}`;
-    const updates = { displayName };
-
-    try {
-      if (this.photoFile) {
-        const reader = new FileReader();
-        reader.onloadend = async () => {
-          updates.photoURL = reader.result;
+      try {
+        if (this.photoFile) {
+          const reader = new FileReader();
+          reader.onloadend = async () => {
+            updates.photoURL = reader.result;
+            await updateProfile(user, updates);
+            alert("Profile updated!");
+          };
+          reader.readAsDataURL(this.photoFile);
+        } else {
           await updateProfile(user, updates);
           alert("Profile updated!");
-        };
-        reader.readAsDataURL(this.photoFile);
-      } else {
-        await updateProfile(user, updates);
-        alert("Profile updated!");
+        }
+      } catch (err) {
+        console.error("Error updating profile:", err);
+        alert("Failed to update profile.");
       }
-    } catch (err) {
-      console.error("Error updating profile:", err);
-      alert("Failed to update profile.");
     }
   }
-}
-
-
-
+};
 </script>
 
 
 <style scoped>
+/* ==== Base Layout ==== */
 .profile-page {
   background-color: #ABC89D;
   min-height: 100vh;
@@ -508,12 +508,12 @@ h1 {
   color: white;
 }
 
-/* UPDATED MAIN NAVIGATION BUTTONS */
+/* ==== Navigation Tabs ==== */
 .main-nav {
   display: flex;
   justify-content: center;
-  margin-bottom: 30px;
   gap: 20px;
+  margin-bottom: 30px;
 }
 
 .main-nav button {
@@ -537,6 +537,7 @@ h1 {
   border-color: #94B88A;
 }
 
+/* ==== Profile and Tab Content ==== */
 .secondary-tab {
   max-width: 900px;
   margin: auto;
@@ -545,6 +546,29 @@ h1 {
   border-radius: 20px;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
   text-align: center;
+}
+
+.secondary-tab h2 {
+  margin-bottom: 30px;
+}
+
+.secondary-tab ul {
+  list-style: none;
+  padding-left: 0;
+  text-align: left;
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.secondary-tab li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f9f9f9;
+  padding: 15px 20px;
+  margin-bottom: 15px;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
 .profile-content {
@@ -566,6 +590,12 @@ h1 {
   flex-direction: column;
 }
 
+/* ==== Inputs & Labels ==== */
+label h3 {
+  margin-bottom: 5px;
+  font-size: 16px;
+}
+
 input {
   width: 100%;
   margin-bottom: 10px;
@@ -582,11 +612,7 @@ input:focus {
   outline: none;
 }
 
-label h3 {
-  margin-bottom: 5px;
-  font-size: 16px;
-}
-
+/* ==== Profile Picture ==== */
 .profile-pic-box {
   width: 100%;
   max-width: 300px;
@@ -629,9 +655,27 @@ label h3 {
   pointer-events: none;
 }
 
-.submit-btn {
-  background-color: #5B8D8A; 
-  color: white;
+/* ==== Listing Cards ==== */
+.listing-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.listing-card {
+  background: #f9f9f9;
+  border: 1px solid #d0e3cf;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: left;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+/* ==== Buttons ==== */
+.submit-btn,
+.cancel-btn,
+.delete-btn {
   padding: 10px 20px;
   border-radius: 20px;
   border: none;
@@ -641,82 +685,40 @@ label h3 {
   margin-top: 10px;
 }
 
+.submit-btn {
+  background-color: #5B8D8A;
+  color: white;
+}
+
 .submit-btn:hover {
-  background-color: #FED28D; 
+  background-color: #FED28D;
   color: #333;
-}
-
-.google-warning {
-  color: #8b0000;
-  font-size: 14px;
-  margin-top: 8px;
-  font-style: italic;
-  max-width: 300px;
-}
-
-.pic-note {
-  margin-top: 10px;
-}
-
-.validation-error {
-  color: crimson;
-  font-size: 13px;
-  margin-top: -5px;
-  margin-bottom: 10px;
-}
-.listing-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  margin-top: 20px;
-}
-
-.listing-card {
-  text-align: left;
-  background: #f9f9f9;
-  border: 1px solid #d0e3cf;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0px 4px 10px rgba(0,0,0,0.05);
 }
 
 .cancel-btn {
   margin-left: 15px;
   background-color: #e74c3c;
   color: white;
-  padding: 6px 12px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
   font-size: 14px;
+  border-radius: 6px;
+  padding: 6px 12px;
 }
+
 .cancel-btn:hover {
   background-color: #c0392b;
 }
 
-.secondary-tab ul {
-  text-align: left;
-  padding-left: 0;
-  list-style: none;
-  max-width: 700px;
-  margin: 0 auto;
+.delete-btn {
+  background-color: #FED28D;
+  color: #333;
 }
 
-.secondary-tab li {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: #f9f9f9;
-  padding: 15px 20px;
-  margin-bottom: 15px;
-  border-radius: 10px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+.delete-btn:hover {
+  background-color: #5B8D8A;
+  color: white;
 }
 
-.secondary-tab h2 {
-  margin-bottom: 30px; /* Adjust the value as needed */
-}
-
+/* ==== Edit Modal ==== */
 .edit-modal {
   background: #ffffff;
   padding: 20px;
@@ -725,7 +727,7 @@ label h3 {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  gap: 10px; /* 👈 This adds spacing between the elements */
+  gap: 10px;
   max-width: 500px;
   margin-left: auto;
   margin-right: auto;
@@ -749,12 +751,50 @@ label h3 {
 
 .edit-modal button {
   width: fit-content;
+}
+
+/* ==== Weekday Checkboxes ==== */
+.weekdays-checkboxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.weekdays-checkboxes label {
+  display: flex;
+  align-items: center;
+  background: #f0f5f2;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 14px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.3s ease;
+}
+
+.weekdays-checkboxes input {
+  margin-right: 6px;
+}
+
+/* ==== Other Utility Classes ==== */
+.google-warning {
+  color: #8b0000;
+  font-size: 14px;
+  margin-top: 8px;
+  font-style: italic;
+  max-width: 300px;
+}
+
+.pic-note {
   margin-top: 10px;
 }
 
-.edit-modal .submit-btn {
-  margin-right: 10px;
+.validation-error {
+  color: crimson;
+  font-size: 13px;
+  margin-top: -5px;
+  margin-bottom: 10px;
 }
-
-
 </style>
