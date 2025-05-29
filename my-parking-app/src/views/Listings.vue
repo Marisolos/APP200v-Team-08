@@ -34,7 +34,31 @@
           <p class="ad-address"><strong>Price:</strong> {{ ad.price }} kr /hour</p>
           <p class="ad-address"><strong>Available:</strong> {{ ad.availableWeekdays }} | {{ ad.startTime }}–{{ ad.endTime }}</p>
           <div class="ad-book">
+
+            <div v-if="expandedAdId === ad.id" class="ad-details-expanded">
+  <p><strong>Access:</strong> {{ ad.accessType }}</p>
+  <p><strong>Dimensions:</strong> L: {{ ad.dimensions?.length }}m, W: {{ ad.dimensions?.width }}m, H: {{ ad.dimensions?.height || 'N/A' }}m</p>
+  <p><strong>Features:</strong>
+    <span v-if="ad.roofChecked">🏠 Roof</span>
+    <span v-if="ad.hasCamera">📹 Camera</span>
+    <span v-if="ad.hasCharger">🔌 Charger</span>
+    <span v-if="ad.hasHeating">🔥 Heated</span>
+  </p>
+  <p v-if="ad.guidelines"><strong>Rules:</strong> {{ ad.guidelines }}</p>
+  <p v-if="ad.additionalInfo"><strong>Info:</strong> {{ ad.additionalInfo }}</p>
+  <div v-if="ad.photos?.length">
+    <h4>Photos:</h4>
+    <img v-for="(url, i) in ad.photos" :key="i" :src="url" class="ad-photo" />
+  </div>
+</div>
+
             <button class="book-btn" @click="selectAd(ad)">Book</button>
+            <button
+  class="details-btn"
+  @click="expandedAdId = expandedAdId === ad.id ? null : ad.id"
+>
+  {{ expandedAdId === ad.id ? 'Hide Details' : 'Show Details' }}
+</button>
           </div>
         </div>
 
@@ -102,7 +126,8 @@ export default {
       bookingEnd: "",
       searchQuery: "",
       allDays: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-      sortOption: "date-desc"
+      sortOption: "date-desc",
+      expandedAdId: null
     };
   },
   computed: {
@@ -153,21 +178,27 @@ watch: {
   });
   this.updateVisibleAds();
 },
-    getAvailableDays(ad) {
+getAvailableDays(ad) {
   const allDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-  const value = ad.availableWeekdays?.trim();
 
-  if (!value) {
-    // No days defined? Treat as "all days available"
+  const value = ad.availableWeekdays;
+
+  if (!value || value.length === 0) {
     return allDays;
   }
 
+  // If already an array, return it directly (standard)
+  if (Array.isArray(value)) {
+    return value;
+  }
+
+  // If it's a string, continue parsing
   const lower = value.toLowerCase();
 
-  // Handle format: "Every day (except Saturday, Sunday)"
   if (lower.includes("every day")) {
     if (lower.includes("except")) {
-      const exceptPart = lower.split("except")[1]
+      const exceptPart = lower
+        .split("except")[1]
         .replace(/[()]/g, "")
         .split(",")
         .map(day => day.trim().toLowerCase());
@@ -177,7 +208,6 @@ watch: {
     return allDays;
   }
 
-  // Handle format: "Monday,Tuesday,Wednesday"
   return value.split(",").map(day => day.trim());
 },
 updateVisibleAds() {
@@ -286,7 +316,11 @@ updateVisibleAds() {
     this.fetchAds();
   }
 
-};</script>
+};
+
+</script>
+
+
 <style scoped>
 .ads-container {
   background-color: #ABC89D;
@@ -464,6 +498,49 @@ updateVisibleAds() {
   margin-bottom: 8px;
 }
 
+.details-btn {
+  background-color: #ececec;
+  color: black;
+  padding: 10px 20px;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+  margin-top: 10px;
+  margin-left: 10px;
+  transition: background 0.3s ease;
+}
+
+.ad-details-expanded {
+  margin-top: 15px;
+  padding: 15px;
+  background-color: #f5f9f7;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  font-size: 14px;
+  color: #444;
+  line-height: 1.6;
+}
+
+.ad-details-expanded p {
+  margin: 5px 0;
+}
+
+.ad-details-expanded h4 {
+  margin-top: 10px;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #2c7a7b;
+}
+
+.ad-photo {
+  max-width: 100px;
+  max-height: 80px;
+  margin-right: 10px;
+  margin-top: 5px;
+  border-radius: 6px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
 
 </style>
 
