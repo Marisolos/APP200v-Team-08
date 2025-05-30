@@ -62,16 +62,20 @@
         <p>{{ form.additionalInfo.length }}/500 tegn brukt</p>
       </div>
   
-      <div class="form-section right" style="display: flex; align-items: center; justify-content: space-between;">
-        <div class="progress-container">
-            <div class="progress-bar">
-            <div class="progress-fill" :style="{ width: `${(currentStep / totalSteps) * 100}%` }"></div>
-            </div> <span class="progress-text">Side {{ currentStep }} av {{ totalSteps }}</span>
-        </div>
-        <router-link to="/register-parking-4">
-            <button class="search-button">Neste side →</button>
-        </router-link>
+      <div class="form-section nav-footer">
+  <router-link to="/register-parking-2">
+    <button class="search-button" style="padding: 10px 31px;">← Tilbake</button>
+  </router-link>
+  <div class="progress-container">
+    <div class="progress-bar">
+      <div class="progress-fill" :style="{ width: `${(currentStep / totalSteps) * 100}%` }"></div>
     </div>
+    <span class="progress-text">Side {{ currentStep }} av {{ totalSteps }}</span>
+  </div>
+  <router-link to="/register-parking-4">
+    <button class="search-button">Neste side →</button>
+  </router-link>
+</div>
   <FooterComponent /> <!-- Footer Component -->
 </div>
 </template>
@@ -401,5 +405,21 @@
 .progress-text {
   font-size: 14px;
   color: #333;
+}
+
+.nav-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.nav-footer .progress-container {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
 }
 </style>

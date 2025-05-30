@@ -63,15 +63,18 @@
     </div>
 
     <!-- Progress and Publiser Button -->
-    <div class="form-section right" style="display: flex; align-items: center; justify-content: space-between;">
-      <div class="progress-container">
-        <div class="progress-bar">
-          <div class="progress-fill" :style="{ width: `${(currentStep / totalSteps) * 100}%` }"></div>
-        </div>
-        <span class="progress-text">Side {{ currentStep }} av {{ totalSteps }}</span>
-      </div>
-      <button class="search-button" @click="publishListing">Publiser</button>
+    <div class="form-section nav-footer">
+  <router-link to="/register-parking-3">
+    <button class="search-button" style="padding: 10px 31px;">← Tilbake</button>
+  </router-link>
+  <div class="progress-container">
+    <div class="progress-bar">
+      <div class="progress-fill" :style="{ width: `${(currentStep / totalSteps) * 100}%` }"></div>
     </div>
+    <span class="progress-text">Side {{ currentStep }} av {{ totalSteps }}</span>
+  </div>
+    <button class="search-button" style="padding: 10px 39px;" @click="publishListing">Publiser</button>
+</div>
   <FooterComponent /> <!-- Footer Component -->
   </div>
 </template>
@@ -360,5 +363,21 @@ function getImageUrl(image) {
 
 .search-button:hover {
   background-color: #FED28D;
+}
+
+.nav-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.nav-footer .progress-container {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
 }
 </style>

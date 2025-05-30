@@ -67,14 +67,15 @@
       </div>
     </div>
 
-    <div class="form-section right" style="display: flex; align-items: center; justify-content: space-between;">
-      <div class="progress-container">
+    <div class="form-section" style="position: relative; display: flex; align-items: center; justify-content: flex-end; min-height: 80px;">
+      <div style="position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 12px;">
         <div class="progress-bar">
           <div class="progress-fill" :style="{ width: `${(currentStep / totalSteps) * 100}%` }"></div>
-        </div> <span class="progress-text">Side {{ currentStep }} av {{ totalSteps }}</span>
+        </div>
+        <span class="progress-text">Side {{ currentStep }} av {{ totalSteps }}</span>
       </div>
-        <button class="search-button" @click="validateAndGoToNextPage">Neste side →</button>
-      </div>
+    <button class="search-button" @click="validateAndGoToNextPage">Neste side →</button>
+  </div>
   <FooterComponent /> <!-- Footer Component -->
   </div>
 </template>
@@ -316,6 +317,22 @@ export default {
 .progress-text {
   font-size: 14px;
   color: #333;
+}
+
+.nav-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.nav-footer .progress-container {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
 }
 
 </style>

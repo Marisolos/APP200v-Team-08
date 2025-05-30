@@ -17,12 +17,43 @@
         <h3>Dimensions</h3>
         <label>Let your guests know how much space you have to offer.</label>
         <div class="form-section">
-        <label>Length (m)</label><br>
-        <input type="text" class="text-input" required placeholder="Length" v-model="form.length" @input="validateMeasurement('length')" maxlength="5"/>
-        <label>Width (m)</label><br>
-        <input type="text" class="text-input" placeholder="Width" v-model="form.width" @input="validateMeasurement('width')" maxlength="5"/>
+
+          <label>Length (m)</label><br>
+          <input type="text" class="text-input"
+          :class="{ 'input-error': errors.length && touched.length }"
+          required
+          placeholder="Length"
+          v-model="form.length"
+          @input="validateMeasurement('length')"
+          @blur="touched.length = true"
+          @focus="errors.length = false"
+          maxlength="5"
+          />
+
+          <label>Width (m)</label><br>
+          <input type="text" class="text-input"
+          :class="{ 'input-error': errors.width && touched.width }"
+          placeholder="Width"
+          v-model="form.width"
+          @input="validateMeasurement('width')"
+          @blur="touched.width = true"
+          @focus="errors.width = false"
+          maxlength="5"
+          />
+
         <label>Height (m)</label><br>
-        <input type="text" class="text-input" :class="{ 'readonly': !form.roofChecked }" :placeholder="form.roofChecked ? 'Height' : 'Roof isn\'t checked'" :readonly="!form.roofChecked" v-model="form.height" @input="validateMeasurement('height')" maxlength="5"/>
+        <input type="text" class="text-input"
+          :class="{ 'input-error': errors.height && touched.height }"
+          placeholder="Height"
+          v-model="form.height"
+          @input="validateMeasurement('height')"
+          @blur="touched.height = true"
+          @focus="errors.height = false"
+          maxlength="5"
+          />
+          <div v-if="errors.height && touched.height" class="error-text">
+            Du må fylle ut høyde hvis du har krysset av for tak.
+          </div>
         </div>
     </div>
 
@@ -49,6 +80,9 @@
     <label><input type="checkbox" value="Friday" v-model="form.selectedDays"> Friday</label>
     <label><input type="checkbox" value="Saturday" v-model="form.selectedDays"> Saturday</label>
     <label><input type="checkbox" value="Sunday" v-model="form.selectedDays"> Sunday</label>
+    <div v-if="errors.selectedDays && touched.selectedDays" class="error-text">
+        Du må legge til minst en utleiesekvens.
+      </div>
   </div>
 
   <div style="margin-top: 16px;">
@@ -84,16 +118,19 @@
             </span>
         </div>
     </div>
-    <div class="form-section right" style="display: flex; align-items: center; justify-content: space-between;">
-      <div class="progress-container">
-        <div class="progress-bar">
-          <div class="progress-fill" :style="{ width: `${(currentStep / totalSteps) * 100}%` }"></div>
-        </div> <span class="progress-text">Side {{ currentStep }} av {{ totalSteps }}</span>
-      </div>
-      <router-link to="/register-parking-3">
-        <button class="search-button">Neste side →</button>
-      </router-link>
+    <div class="form-section nav-footer">
+  <router-link to="/register-parking-1">
+    <button class="search-button" style="padding: 10px 31px;">← Tilbake</button>
+  </router-link>
+  <div class="progress-container">
+    <div class="progress-bar">
+      <div class="progress-fill" :style="{ width: `${(currentStep / totalSteps) * 100}%` }"></div>
     </div>
+    <span class="progress-text">Side {{ currentStep }} av {{ totalSteps }}</span>
+  </div>
+  <button class="search-button" @click="validateAndGoToNextPage">Neste side →</button>
+</div>
+
   <FooterComponent /> <!-- Footer Component -->
 </div>
   </template>
@@ -108,12 +145,24 @@ import FooterComponent from '@/components/Footer.vue' // Import the Footer compo
     components: {
       FooterComponent // Register the Footer component
     },
-    data(){
-        return {
-      currentStep: 2,
-      totalSteps: 4
-        };
+    data() {
+  return {
+    currentStep: 2,
+    totalSteps: 4,
+    errors: {
+      length: false,
+      width: false,
+      selectedDays: false,
+      height: false
     },
+    touched: {
+      length: false,
+      width: false,
+      selectedDays: false,
+      height: false
+      }
+    };
+  },
     setup() {
         const form = useRegisterFormStore()
         return { form }
@@ -199,7 +248,24 @@ import FooterComponent from '@/components/Footer.vue' // Import the Footer compo
 
     deleteRule(index) {
         this.form.rules.splice(index, 1);
+    },
+
+    validateAndGoToNextPage() {
+      this.errors.length = !this.form.length;
+      this.errors.width = !this.form.width;
+      this.errors.selectedDays = this.form.rules.length === 0;
+      this.errors.height = this.form.roofChecked && !this.form.height;
+
+      this.touched.length = true;
+      this.touched.width = true;
+      this.touched.selectedDays = true;
+      this.touched.height = true;
+
+      if (!this.errors.length && !this.errors.width && !this.errors.selectedDays && !this.errors.height) {
+        this.$router.push('/register-parking-3');
+      }
     }
+
   },
 };
   </script>
@@ -336,6 +402,33 @@ import FooterComponent from '@/components/Footer.vue' // Import the Footer compo
 .progress-text {
   font-size: 14px;
   color: #333;
+}
+
+.nav-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.nav-footer .progress-container {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+}
+
+.error-text {
+  color: red;
+  margin-bottom: 6px;
+  margin-right: auto;
+}
+
+.input-error {
+  border-color: red;
+  background-color: #ffe6e6;
 }
 
 </style>
