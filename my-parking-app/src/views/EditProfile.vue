@@ -204,7 +204,8 @@ import {
   doc as docRef,
   setDoc,
   doc,
-  updateDoc
+  updateDoc,
+  deleteDoc
 } from "firebase/firestore";
 import { db } from "@/firebase";
 import defaultAvatar from "@/assets/default-user.png";
@@ -358,38 +359,38 @@ methods: {
       alert("Failed to update profile.");
     } finally {
       try {
-  const userDocRef = docRef(db, "users", user.uid);
-  const userDocSnap = await getDoc(userDocRef);
+        const userDocRef = docRef(db, "users", user.uid);
+        const userDocSnap = await getDoc(userDocRef);
 
-  if (userDocSnap.exists()) {
-    // Update existing document
-    await updateDoc(userDocRef, {
-      address: this.address,
-      phone: this.phone
-    });
-  } else {
-    // Create new document
-    await setDoc(userDocRef, {
-      address: this.address,
-      phone: this.phone,
-      uid: user.uid,
-      createdAt: new Date()
-    });
-  }
-} catch (err) {
-  console.error("Error writing user info to Firestore:", err);
-  alert("Failed to save address/phone.");
-}
+        if (userDocSnap.exists()) {
+          await updateDoc(userDocRef, {
+            address: this.address,
+            phone: this.phone
+          });
+        } else {
+          await setDoc(userDocRef, {
+            address: this.address,
+            phone: this.phone,
+            uid: user.uid,
+            createdAt: new Date()
+          });
+        }
+      } catch (err) {
+        console.error("Error writing user info to Firestore:", err);
+        alert("Failed to save address/phone.");
+      }
 
       this.updatingProfile = false;
     }
   },
 
-
-  cancelBooking(bookingId) {
-    const booking = this.parkingHistory.find(b => b.id === bookingId);
-    if (booking) {
-      booking.canceled = true;
+  async cancelBooking(bookingId) {
+    if (!confirm("Are you sure you want to cancel this booking?")) return;
+    try {
+      await deleteDoc(doc(db, "bookings", bookingId));
+      this.parkingHistory = this.parkingHistory.filter(b => b.id !== bookingId);
+    } catch (err) {
+      console.error("Error canceling booking:", err);
     }
   },
 
@@ -401,7 +402,6 @@ methods: {
         collection(db, "listings"),
         where("ownerId", "==", this.user.uid)
       );
-
       const querySnapshot = await getDocs(q);
       this.listings = querySnapshot.docs.map((doc) => ({
         id: doc.id,
@@ -411,6 +411,45 @@ methods: {
       console.error("Error fetching listings:", err);
     } finally {
       this.loadingListings = false;
+    }
+  },
+
+  async deleteListing(listingId) {
+    if (!confirm("Are you sure you want to delete this listing?")) return;
+    try {
+      await deleteDoc(doc(db, "listings", listingId));
+      this.listings = this.listings.filter(listing => listing.id !== listingId);
+    } catch (err) {
+      console.error("Error deleting listing:", err);
+      alert("Could not delete the listing.");
+    }
+  },
+
+  openEditModal(listing) {
+    this.editingListing = listing;
+    this.editForm = {
+      address: listing.address || '',
+      price: listing.price || '',
+      startTime: listing.startTime || '',
+      endTime: listing.endTime || '',
+      availableWeekdays: listing.availableWeekdays || []
+    };
+  },
+
+  cancelEdit() {
+    this.editingListing = null;
+  },
+
+  async saveEdit() {
+    if (!this.editingListing?.id) return;
+    try {
+      const docRef = doc(db, "listings", this.editingListing.id);
+      await updateDoc(docRef, { ...this.editForm });
+      Object.assign(this.editingListing, this.editForm);
+      this.editingListing = null;
+    } catch (err) {
+      console.error("Failed to update listing:", err);
+      alert("Could not save changes.");
     }
   },
 
@@ -447,13 +486,8 @@ methods: {
         snapshot.docs.map(async doc => {
           const data = doc.data();
           let renterName = "Unknown";
-
-          if (!data.renterId) {
-            return { id: doc.id, ...data, renterName };
-          }
-
           try {
-            const userDoc = await getDoc(docRef(db, "users", data.renterId));
+            const userDoc = await getDoc(doc(db, "users", data.renterId));
             if (userDoc.exists()) {
               const userInfo = userDoc.data();
               renterName = userInfo.displayName || userInfo.firstName || userInfo.email || data.renterId;
@@ -461,7 +495,6 @@ methods: {
           } catch (err) {
             console.warn("Failed to fetch renter info:", err);
           }
-
           return {
             id: doc.id,
             ...data,
@@ -475,6 +508,36 @@ methods: {
     } finally {
       this.loadingRentalHistory = false;
     }
+  },
+
+  onFileChange(e) {
+    if (this.isGoogleUser) return;
+    const file = e.target.files[0];
+    if (file && file.size > 2 * 1024 * 1024) {
+      alert("Image must be smaller than 2MB.");
+      return;
+    }
+    this.photoFile = file;
+    this.previewUrl = URL.createObjectURL(file);
+  },
+
+  mapWeekdays(codes) {
+    const dayMap = {
+      M: "Monday",
+      T: "Tuesday",
+      W: "Wednesday",
+      Th: "Thursday",
+      F: "Friday",
+      Sa: "Saturday",
+      Su: "Sunday"
+    };
+
+    if (typeof codes === 'string') {
+      codes = codes.split(',').map(code => code.trim());
+    }
+
+    if (!Array.isArray(codes)) return '';
+    return codes.map(code => dayMap[code] || code).join(', ');
   },
 
   mapDay(day) {
@@ -496,258 +559,9 @@ methods: {
       dateStyle: "short",
       timeStyle: "short"
     }).format(date.toDate ? date.toDate() : date);
-  },
-
-  onFileChange(e) {
-    if (this.isGoogleUser) return;
-    const file = e.target.files[0];
-    if (file && file.size > 2 * 1024 * 1024) {
-      alert("Image must be smaller than 2MB.");
-      return;
-    }
-    this.photoFile = file;
-    this.previewUrl = URL.createObjectURL(file);
   }
 }
 }
-
-
-=======
-  methods: {
-    async cancelBooking(bookingId) {
-      if (!confirm("Are you sure you want to cancel this booking?")) return;
-      try {
-        await deleteDoc(doc(db, "bookings", bookingId));
-        this.parkingHistory = this.parkingHistory.filter(b => b.id !== bookingId);
-      } catch (err) {
-        console.error("Error canceling booking:", err);
-      }
-    },
-
-    async fetchListings() {
-      if (!this.user) return;
-      this.loadingListings = true;
-      try {
-        const q = query(
-          collection(db, "listings"),
-          where("ownerId", "==", this.user.uid)
-        );
-        const querySnapshot = await getDocs(q);
-        this.listings = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-      } catch (err) {
-        console.error("Error fetching listings:", err);
-      } finally {
-        this.loadingListings = false;
-      }
-    },
-
-    formatDate(date) {
-      if (!date) return "N/A";
-      return new Intl.DateTimeFormat("en-GB", {
-        dateStyle: "short"
-      }).format(date.toDate ? date.toDate() : date);
-    },
-
-    openEditModal(listing) {
-      this.editingListing = listing;
-      this.editForm = {
-        address: listing.address || '',
-        price: listing.price || '',
-        startTime: listing.startTime || '',
-        endTime: listing.endTime || '',
-        availableWeekdays: listing.availableWeekdays || []
-      };
-    },
-
-    async saveEdit() {
-      if (!this.editingListing?.id) return;
-      try {
-        const docRef = doc(db, "listings", this.editingListing.id);
-        await updateDoc(docRef, { ...this.editForm });
-
-        Object.assign(this.editingListing, this.editForm);
-        this.editingListing = null;
-      } catch (err) {
-        console.error("Failed to update listing:", err);
-        alert("Could not save changes.");
-      }
-    },
-
-    cancelEdit() {
-      this.editingListing = null;
-    },
-
-    async deleteListing(listingId) {
-      if (!confirm("Are you sure you want to delete this listing?")) return;
-      try {
-        await deleteDoc(doc(db, "listings", listingId));
-        this.listings = this.listings.filter(listing => listing.id !== listingId);
-      } catch (err) {
-        console.error("Error deleting listing:", err);
-        alert("Could not delete the listing.");
-      }
-    },
-
-mapWeekdays(codes) {
-  const dayMap = {
-    M: "Monday",
-    T: "Tuesday",
-    W: "Wednesday",
-    Th: "Thursday",
-    F: "Friday",
-    Sa: "Saturday",
-    Su: "Sunday"
-  };
-
-  // If it's a string (e.g. "M,T,W"), split it
-  if (typeof codes === 'string') {
-    codes = codes.split(',').map(code => code.trim());
-  }
-
-  // If not an array after that, return empty string
-  if (!Array.isArray(codes)) return '';
-
-  return codes.map(code => dayMap[code] || code).join(', ');
-},
-
-    async fetchParkingHistory() {
-      if (!this.user) return;
-      this.loadingHistory = true;
-      try {
-        const q = query(
-          collection(db, "bookings"),
-          where("renterId", "==", this.user.uid)
-        );
-        const snapshot = await getDocs(q);
-        this.parkingHistory = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-      } catch (err) {
-        console.error("Error fetching parking history:", err);
-      } finally {
-        this.loadingHistory = false;
-      }
-    },
-
-    async fetchRentalHistory() {
-      if (!this.user) return;
-      this.loadingRentalHistory = true;
-      try {
-        const q = query(
-          collection(db, "rentalHistory"),
-          where("ownerId", "==", this.user.uid)
-        );
-        const snapshot = await getDocs(q);
-        const records = await Promise.all(
-          snapshot.docs.map(async doc => {
-            const data = doc.data();
-            let renterName = "Unknown";
-            try {
-              const userDoc = await getDoc(doc(db, "users", data.renterId));
-              if (userDoc.exists()) {
-                const userInfo = userDoc.data();
-                renterName =
-                  userInfo.displayName ||
-                  userInfo.firstName ||
-                  userInfo.email ||
-                  data.renterId;
-              }
-            } catch (err) {
-              console.warn("Failed to fetch renter info:", err);
-            }
-            return {
-              id: doc.id,
-              ...data,
-              renterName
-            };
-          })
-        );
-        this.rentalHistory = records;
-      } catch (err) {
-        console.error("Error fetching rental history:", err);
-      } finally {
-        this.loadingRentalHistory = false;
-      }
-    },
-
-    mapDay(day) {
-      const days = {
-        M: "Monday",
-        T: "Tuesday",
-        W: "Wednesday",
-        Th: "Thursday",
-        F: "Friday",
-        Sa: "Saturday",
-        Su: "Sunday"
-      };
-      return days[day] || day;
-    },
-
-    onFileChange(e) {
-      if (this.isGoogleUser) return;
-      const file = e.target.files[0];
-      if (file && file.size > 2 * 1024 * 1024) {
-        alert("Image must be smaller than 2MB.");
-        return;
-      }
-      this.photoFile = file;
-      if (file) this.previewUrl = URL.createObjectURL(file);
-    },
-
-    async updateProfile() {
-      this.submitted = true;
-
-      const nameValid = /^[A-Za-z]+$/;
-      const phoneValid = /^\+?\d{7,15}$/;
-      const emailValid = /.+@.+\..+/;
-
-      if (
-        (this.firstName && !nameValid.test(this.firstName)) ||
-        (this.lastName && !nameValid.test(this.lastName)) ||
-        (this.phone && !phoneValid.test(this.phone)) ||
-        (this.email && !emailValid.test(this.email)) ||
-        (this.address && this.address.length < 3)
-      ) {
-        return;
-      }
-
-      if (!this.isGoogleUser && this.newPassword && this.newPassword.length < 6) {
-        return;
-      }
-
-      if (!this.isGoogleUser && this.newPassword && this.newPassword !== this.confirmPassword) {
-        return;
-      }
-
-      const auth = getAuth();
-      const user = auth.currentUser;
-      const displayName = `${this.firstName} ${this.lastName}`;
-      const updates = { displayName };
-
-      try {
-        if (this.photoFile) {
-          const reader = new FileReader();
-          reader.onloadend = async () => {
-            updates.photoURL = reader.result;
-            await updateProfile(user, updates);
-            alert("Profile updated!");
-          };
-          reader.readAsDataURL(this.photoFile);
-        } else {
-          await updateProfile(user, updates);
-          alert("Profile updated!");
-        }
-      } catch (err) {
-        console.error("Error updating profile:", err);
-        alert("Failed to update profile.");
-      }
-    }
-  }
-};
 </script>
 
 
