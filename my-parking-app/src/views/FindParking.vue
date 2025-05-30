@@ -239,7 +239,7 @@ onDeactivated(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 20px;
+  padding: 40px;
   background-color: #ABC89D; 
   min-height: 100vh;
   font-family: "Nunito Sans", sans-serif;
@@ -247,9 +247,10 @@ onDeactivated(() => {
 }
 
 .page-title {
-  font-size: 28px;
+  font-size: 36px;
   color: #ffffff;
   margin-bottom: 20px;
+  text-align: center;
 }
 
 .search-container {
