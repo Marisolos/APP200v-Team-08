@@ -12,6 +12,7 @@
 
     <!-- === PROFILE TAB === -->
     <div v-if="currentTab === 'profile'" class="profile-content">
+
       <!-- LEFT SECTION -->
       <div class="form-left">
         <label>
@@ -103,6 +104,8 @@
       </div>
     </div>
 
+
+
     <!-- === PARKING HISTORY TAB === -->
     <div v-if="currentTab === 'history'" class="secondary-tab">
       <h2>Parking History</h2>
@@ -185,7 +188,9 @@
   </div>
 </template>
 
+
 <script>
+
 import {
   getAuth,
   updateProfile,
@@ -194,6 +199,14 @@ import {
   EmailAuthProvider,
   reauthenticateWithCredential
 } from "firebase/auth";
+
+import {
+  getStorage,
+  ref as storageRef,
+  uploadBytes,
+  getDownloadURL
+} from "firebase/storage";
+
 
 import {
   collection,
@@ -209,6 +222,9 @@ import {
 } from "firebase/firestore";
 import { db } from "@/firebase";
 import defaultAvatar from "@/assets/default-user.png";
+
+
+
 
 export default {
   name: "EditProfile",
@@ -244,13 +260,15 @@ export default {
         { label: "Sat", value: "Sa" },
         { label: "Sun", value: "Su" }
       ],
-      editForm: {
-        address: '',
-        price: '',
-        startTime: '',
-        endTime: '',
-        availableWeekdays: []
-      },
+    editForm: {
+      address: '',
+      price: '',
+      startTime: '',
+      endTime: '',
+      availableWeekdays: [],
+    },
+
+    
       rentalHistory: [],
       parkingHistory: [],
       loadingHistory: false
@@ -334,26 +352,38 @@ methods: {
         await updateEmail(user, this.email);
       }
 
-      if (this.photoFile) {
-        const reader = new FileReader();
-        reader.onloadend = async () => {
-          try {
-            updates.photoURL = reader.result;
-            await updateProfile(user, updates);
-            alert("Profile updated!");
-          } catch (err) {
-            console.error("Error updating profile:", err);
-            alert("Failed to update profile.");
-          } finally {
-            this.updatingProfile = false;
-          }
-        };
-        reader.readAsDataURL(this.photoFile);
-        return;
-      } else {
-        await updateProfile(user, updates);
-        alert("Profile updated!");
-      }
+     if (this.photoFile) {
+  try {
+    const storage = getStorage();
+    const filePath = `profilePictures/${user.uid}_${Date.now()}`;
+    const imageRef = storageRef(storage, filePath);
+
+    // Upload image to Firebase Storage
+    await uploadBytes(imageRef, this.photoFile);
+
+    // Get downloadable URL for the uploaded image
+    const photoURL = await getDownloadURL(imageRef);
+
+    // Update user profile with photoURL
+    updates.photoURL = photoURL;
+    await updateProfile(user, updates);
+
+    // Optional: update local user object
+    this.user.photoURL = photoURL;
+
+    alert("Profile updated!");
+  } catch (err) {
+    console.error("Error uploading profile picture:", err);
+    alert("Failed to upload profile picture.");
+  } finally {
+    this.updatingProfile = false;
+  }
+  return;
+} else {
+  await updateProfile(user, updates);
+  alert("Profile updated!");
+}
+
     } catch (err) {
       console.error("Error updating profile:", err);
       alert("Failed to update profile.");
@@ -510,16 +540,27 @@ methods: {
     }
   },
 
-  onFileChange(e) {
-    if (this.isGoogleUser) return;
-    const file = e.target.files[0];
-    if (file && file.size > 2 * 1024 * 1024) {
-      alert("Image must be smaller than 2MB.");
-      return;
-    }
-    this.photoFile = file;
-    this.previewUrl = URL.createObjectURL(file);
-  },
+onFileChange(e) {
+  if (this.isGoogleUser) return;
+
+  const file = e.target.files[0];
+  if (!file || file.size > 2 * 1024 * 1024) {
+    alert("Image must be under 2MB.");
+    return;
+  }
+
+  this.photoFile = file;
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    this.previewUrl = event.target.result;
+  };
+  reader.readAsDataURL(file);
+},
+
+
+
+
+
 
   mapWeekdays(codes) {
     const dayMap = {
@@ -560,13 +601,19 @@ methods: {
       timeStyle: "short"
     }).format(date.toDate ? date.toDate() : date);
   }
+} 
 }
-}
+
 </script>
 
 
 <style scoped>
+
 /* ==== Base Layout ==== */
+
+
+
+
 .profile-page {
   background-color: #ABC89D;
   min-height: 100vh;
@@ -871,4 +918,7 @@ input:focus {
   margin-top: -5px;
   margin-bottom: 10px;
 }
+
+
+
 </style>
