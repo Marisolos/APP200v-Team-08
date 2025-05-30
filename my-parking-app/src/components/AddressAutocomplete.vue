@@ -67,7 +67,7 @@
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
           search.value
-        )}&format=json&addressdetails=1`
+        )}&format=json&addressdetails=1&countrycodes=no`
       )
       suggestions.value = await response.json()
       showDropdown.value = true
