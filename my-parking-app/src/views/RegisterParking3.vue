@@ -26,7 +26,7 @@
             v-for="(image, index) in form.images"
             :key="image.id"
           >
-            <img :src="image.url" :alt="'Bilde ' + (index + 1)" />
+            <img :src="getPreviewUrl(image)" :alt="'Bilde ' + (index + 1)" />
             <div class="image-actions">
               <button @click="moveImage(index, -1)" :disabled="index === 0">⬅️</button>
               <button @click="moveImage(index, 1)" :disabled="index === form.images.length - 1">➡️</button>
@@ -107,25 +107,26 @@
 
   
   function processFiles(files) {
-    if (form.images.length >= 4) return
-    Array.from(files).forEach((file) => {
-      if (
-        form.images.length < 4 &&
-        file.type.startsWith("image/") &&
-        !form.images.some((img) => img.name === file.name)
-      ) {
-        const reader = new FileReader()
-        reader.onload = (e) => {
-          form.images.push({
-            id: Date.now() + Math.random(),
-            name: file.name,
-            url: e.target.result,
-          })
-        }
-        reader.readAsDataURL(file)
-      }
-    })
-  }
+  if (form.images.length >= 4) return;
+
+  Array.from(files).forEach((file) => {
+    if (
+      form.images.length < 4 &&
+      file.type.startsWith("image/") &&
+      !form.images.some((img) => img.name === file.name)
+    ) {
+      form.images.push({
+    file,
+    name: file.name,
+    previewUrl: URL.createObjectURL(file),
+    type: file.type,
+    }) // Lagrer File-objekt
+      console.log("Lagt til bilde:", file.name, file);
+      console.log("form.images nå:", form.images);
+    }
+  });
+}
+
   
   function moveImage(index, direction) {
     const newIndex = index + direction
@@ -145,6 +146,11 @@
     }
 
   console.log(form);
+
+  function getPreviewUrl(image) {
+  return image.previewUrl || image.url || '';
+}
+
 
   </script>
   

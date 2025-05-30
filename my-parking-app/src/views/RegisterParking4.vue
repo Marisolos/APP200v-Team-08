@@ -7,7 +7,7 @@
       <h3>Overview</h3>
       <div v-if="form.images && form.images.length" class="image-preview-container">
         <div v-for="(image, index) in form.images" :key="index" :class="['image-preview', { 'large': index === 0 }]">
-          <img :src="image.url" :alt="'Bilde ' + (index + 1)" />
+          <img :src="getImageUrl(image)" :alt="'Bilde ' + (index + 1)" />
         </div>
       </div>
       <br>
@@ -82,8 +82,13 @@ import { db } from '@/firebase';
 import { getAuth } from 'firebase/auth';
 import { addDoc, collection, serverTimestamp, getDocs, query, where } from 'firebase/firestore';
 import FooterComponent from "@/components/Footer.vue"; // Import FooterComponent for use in this component
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { useRouter } from 'vue-router';
+
+
 
 const form = useRegisterFormStore();
+const router = useRouter();
 const currentStep = 4;
 const totalSteps = 4;
 
@@ -104,6 +109,29 @@ const publishListing = async () => {
 // Initialize variables to store latitude and longitude
   let lat = null;
   let lng = null;
+
+const storage = getStorage();
+const uploadedImageUrls = [];
+
+  for (const image of form.images) {
+  if (image.file instanceof File) {
+    const storageRef = ref(storage, `listingImages/${user.uid}/${Date.now()}-${image.name}`);
+    try {
+      const snapshot = await uploadBytes(storageRef, image.file);
+      const downloadURL = await getDownloadURL(snapshot.ref);
+      if (downloadURL) {
+        uploadedImageUrls.push({ url: downloadURL });
+      }
+    } catch (error) {
+      console.error("Image upload failed:", error);
+      alert("Bildeopplasting feilet.");
+      return;
+    }
+  } else if (image.url) {
+    uploadedImageUrls.push(image); // Hvis bildet allerede er lastet opp
+  }
+}
+
 
 // Check that the address is not empty or just whitespace
   if (listingAddress.trim()) {
@@ -172,6 +200,15 @@ const publishListing = async () => {
   const timestamp = new Date().toLocaleString();
   const listingTitle = `Listing ${listingNumber} - ${timestamp}`;
 
+
+console.log("form.images:", form.images);
+console.log("uploadedImageUrls:", uploadedImageUrls);
+const cleanedImageUrls = uploadedImageUrls.filter(img => img && typeof img.url === 'string' && img.url.startsWith('http'));
+form.images = cleanedImageUrls;
+console.log("cleanedImageUrls:", cleanedImageUrls);
+
+
+
 //Save to Firestore
   const commonListingData = {
     title: listingTitle,
@@ -187,6 +224,7 @@ const publishListing = async () => {
     hasCamera: form.hasCamera,
     hasCharger: form.hasCharger,
     hasHeating: form.hasHeating,
+    images: cleanedImageUrls,
     roofChecked: form.roofChecked,
     dimensions: {
       length: form.length,
@@ -198,6 +236,8 @@ const publishListing = async () => {
     additionalInfo: form.additionalInfo || "",
     createdAt: serverTimestamp(),
   };
+
+console.log("commonListingData som lagres:", commonListingData);
 
 //Author: Hedvig
   try {
@@ -211,11 +251,20 @@ const publishListing = async () => {
 //Author: Hedvig
 
     alert("Listing published!");
+    router.push('/listings');
   } catch (err) {
     console.error("Error publishing listing:", err);
     alert("Failed to publish listing.");
   }
 };
+
+function getImageUrl(image) {
+  if (image.previewUrl) return image.previewUrl; // vis preview før opplasting
+  if (image.url && typeof image.url === 'string' && image.url.startsWith('http')) {
+    return image.url;
+  }
+  return '';
+}
 </script>
 
 <style scoped>
