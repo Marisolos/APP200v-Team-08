@@ -88,10 +88,8 @@ import FooterComponent from "@/components/Footer.vue"; // Importer FooterCompone
 
 export default {
   name: 'RegisterParking1',
-    components: {
-    FooterComponent  // <-- Registrer FooterComponent her
-  },
-  components: { AddressAutocomplete },
+  components:
+  { AddressAutocomplete, FooterComponent }, // Registrer FooterComponent her
   data() {
     const form = useRegisterFormStore()
 
