@@ -74,7 +74,15 @@
           You're signed in with Google. To change your password, please visit your Google Account settings.
         </p>
 
-        <button class="submit-btn" @click="updateProfile">Save</button>
+        <button
+  type="button"
+  class="submit-btn"
+  @click="updateProfile"
+  :disabled="updatingProfile"
+>
+  {{ updatingProfile ? "Saving..." : "Save" }}
+</button>
+
       </div>
 
       <!-- RIGHT SECTION -->
@@ -174,26 +182,41 @@
         </div>
       </div>
     </div>
+    <FooterComponent /> <!-- Footer Component -->
   </div>
 </template>
 
 <script>
-import { getAuth, updateProfile } from "firebase/auth";
+import {
+  getAuth,
+  updateProfile,
+  updateEmail,
+  updatePassword,
+  EmailAuthProvider,
+  reauthenticateWithCredential
+} from "firebase/auth";
+
 import {
   collection,
   getDocs,
   query,
   where,
-  deleteDoc,
   getDoc,
+  doc as docRef,
+  setDoc,
   doc,
-  updateDoc
+  updateDoc,
+  deleteDoc
 } from "firebase/firestore";
 import { db } from "@/firebase";
 import defaultAvatar from "@/assets/default-user.png";
+import FooterComponent from "@/components/Footer.vue"; // Import FooterComponent for use in this component
 
 export default {
   name: "EditProfile",
+    components: {
+    FooterComponent  // <-- Registrer komponenten her
+  },
   data() {
     return {
       user: null,
@@ -211,6 +234,8 @@ export default {
       isGoogleUser: false,
       submitted: false,
       currentTab: "profile",
+      updatingProfile: false,
+      loadingRentalHistory: false,
 
       listings: [],
       loadingListings: false,
@@ -236,258 +261,312 @@ export default {
       loadingHistory: false
     };
   },
-  mounted() {
-    const auth = getAuth();
-    this.user = auth.currentUser;
+  
+async mounted() {
+  const auth = getAuth();
+  this.user = auth.currentUser;
 
-    if (this.user) {
-      const providerData = this.user.providerData[0];
-      this.isGoogleUser = providerData.providerId === "google.com";
+  if (this.user) {
+    const providerData = this.user.providerData[0];
+    this.isGoogleUser = providerData.providerId === "google.com";
 
-      this.firstName = this.user.displayName?.split(" ")[0] || "";
-      this.lastName = this.user.displayName?.split(" ")[1] || "";
-      this.email = this.user.email || "";
+    this.firstName = this.user.displayName?.split(" ")[0] || "";
+    this.lastName = this.user.displayName?.split(" ")[1] || "";
+    this.email = this.user.email || "";
 
-      this.fetchListings();
-      this.fetchParkingHistory();
-      this.fetchRentalHistory();
+    // Load phone and address from Firestore
+    try {
+      const userDocRef = docRef(db, "users", this.user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+      if (userDocSnap.exists()) {
+        const userData = userDocSnap.data();
+        this.address = userData.address || "";
+        this.phone = userData.phone || "";
+      }
+    } catch (err) {
+      console.warn("Failed to load user extra fields:", err);
     }
-  },
-  methods: {
-    async cancelBooking(bookingId) {
-      if (!confirm("Are you sure you want to cancel this booking?")) return;
-      try {
-        await deleteDoc(doc(db, "bookings", bookingId));
-        this.parkingHistory = this.parkingHistory.filter(b => b.id !== bookingId);
-      } catch (err) {
-        console.error("Error canceling booking:", err);
-      }
-    },
 
-    async fetchListings() {
-      if (!this.user) return;
-      this.loadingListings = true;
-      try {
-        const q = query(
-          collection(db, "listings"),
-          where("ownerId", "==", this.user.uid)
-        );
-        const querySnapshot = await getDocs(q);
-        this.listings = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-      } catch (err) {
-        console.error("Error fetching listings:", err);
-      } finally {
-        this.loadingListings = false;
-      }
-    },
-
-    formatDate(date) {
-      if (!date) return "N/A";
-      return new Intl.DateTimeFormat("en-GB", {
-        dateStyle: "short"
-      }).format(date.toDate ? date.toDate() : date);
-    },
-
-    openEditModal(listing) {
-      this.editingListing = listing;
-      this.editForm = {
-        address: listing.address || '',
-        price: listing.price || '',
-        startTime: listing.startTime || '',
-        endTime: listing.endTime || '',
-        availableWeekdays: listing.availableWeekdays || []
-      };
-    },
-
-    async saveEdit() {
-      if (!this.editingListing?.id) return;
-      try {
-        const docRef = doc(db, "listings", this.editingListing.id);
-        await updateDoc(docRef, { ...this.editForm });
-
-        Object.assign(this.editingListing, this.editForm);
-        this.editingListing = null;
-      } catch (err) {
-        console.error("Failed to update listing:", err);
-        alert("Could not save changes.");
-      }
-    },
-
-    cancelEdit() {
-      this.editingListing = null;
-    },
-
-    async deleteListing(listingId) {
-      if (!confirm("Are you sure you want to delete this listing?")) return;
-      try {
-        await deleteDoc(doc(db, "listings", listingId));
-        this.listings = this.listings.filter(listing => listing.id !== listingId);
-      } catch (err) {
-        console.error("Error deleting listing:", err);
-        alert("Could not delete the listing.");
-      }
-    },
-
-mapWeekdays(codes) {
-  const dayMap = {
-    M: "Monday",
-    T: "Tuesday",
-    W: "Wednesday",
-    Th: "Thursday",
-    F: "Friday",
-    Sa: "Saturday",
-    Su: "Sunday"
-  };
-
-  // If it's a string (e.g. "M,T,W"), split it
-  if (typeof codes === 'string') {
-    codes = codes.split(',').map(code => code.trim());
+    this.fetchListings();
+    this.fetchParkingHistory();
+    this.fetchRentalHistory();
   }
-
-  // If not an array after that, return empty string
-  if (!Array.isArray(codes)) return '';
-
-  return codes.map(code => dayMap[code] || code).join(', ');
 },
 
-    async fetchParkingHistory() {
-      if (!this.user) return;
-      this.loadingHistory = true;
-      try {
-        const q = query(
-          collection(db, "bookings"),
-          where("renterId", "==", this.user.uid)
-        );
-        const snapshot = await getDocs(q);
-        this.parkingHistory = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-      } catch (err) {
-        console.error("Error fetching parking history:", err);
-      } finally {
-        this.loadingHistory = false;
-      }
-    },
+methods: {
+  async updateProfile() {
+    this.submitted = true;
+    this.updatingProfile = true;
 
-    async fetchRentalHistory() {
-      if (!this.user) return;
-      this.loadingRentalHistory = true;
-      try {
-        const q = query(
-          collection(db, "rentalHistory"),
-          where("ownerId", "==", this.user.uid)
-        );
-        const snapshot = await getDocs(q);
-        const records = await Promise.all(
-          snapshot.docs.map(async doc => {
-            const data = doc.data();
-            let renterName = "Unknown";
-            try {
-              const userDoc = await getDoc(doc(db, "users", data.renterId));
-              if (userDoc.exists()) {
-                const userInfo = userDoc.data();
-                renterName =
-                  userInfo.displayName ||
-                  userInfo.firstName ||
-                  userInfo.email ||
-                  data.renterId;
-              }
-            } catch (err) {
-              console.warn("Failed to fetch renter info:", err);
-            }
-            return {
-              id: doc.id,
-              ...data,
-              renterName
-            };
-          })
-        );
-        this.rentalHistory = records;
-      } catch (err) {
-        console.error("Error fetching rental history:", err);
-      } finally {
-        this.loadingRentalHistory = false;
-      }
-    },
+    const nameValid = /^[A-Za-z]+$/;
+    const phoneValid = /^\+?\d{7,15}$/;
+    const emailValid = /.+@.+\..+/;
 
-    mapDay(day) {
-      const days = {
-        M: "Monday",
-        T: "Tuesday",
-        W: "Wednesday",
-        Th: "Thursday",
-        F: "Friday",
-        Sa: "Saturday",
-        Su: "Sunday"
-      };
-      return days[day] || day;
-    },
+    if (
+      (this.firstName && !nameValid.test(this.firstName)) ||
+      (this.lastName && !nameValid.test(this.lastName)) ||
+      (this.phone && !phoneValid.test(this.phone)) ||
+      (this.email && !emailValid.test(this.email)) ||
+      (this.address && this.address.length < 3)
+    ) {
+      this.updatingProfile = false;
+      return;
+    }
 
-    onFileChange(e) {
-      if (this.isGoogleUser) return;
-      const file = e.target.files[0];
-      if (file && file.size > 2 * 1024 * 1024) {
-        alert("Image must be smaller than 2MB.");
-        return;
-      }
-      this.photoFile = file;
-      if (file) this.previewUrl = URL.createObjectURL(file);
-    },
+    if (!this.isGoogleUser && this.newPassword && this.newPassword.length < 6) {
+      this.updatingProfile = false;
+      return;
+    }
 
-    async updateProfile() {
-      this.submitted = true;
+    if (!this.isGoogleUser && this.newPassword && this.newPassword !== this.confirmPassword) {
+      this.updatingProfile = false;
+      return;
+    }
 
-      const nameValid = /^[A-Za-z]+$/;
-      const phoneValid = /^\+?\d{7,15}$/;
-      const emailValid = /.+@.+\..+/;
+    const auth = getAuth();
+    const user = auth.currentUser;
+    const displayName = `${this.firstName} ${this.lastName}`;
+    const updates = { displayName };
 
-      if (
-        (this.firstName && !nameValid.test(this.firstName)) ||
-        (this.lastName && !nameValid.test(this.lastName)) ||
-        (this.phone && !phoneValid.test(this.phone)) ||
-        (this.email && !emailValid.test(this.email)) ||
-        (this.address && this.address.length < 3)
-      ) {
-        return;
+    try {
+      if (!this.isGoogleUser && this.oldPassword && this.newPassword) {
+        const credential = EmailAuthProvider.credential(this.email, this.oldPassword);
+        await reauthenticateWithCredential(user, credential);
+        await updatePassword(user, this.newPassword);
       }
 
-      if (!this.isGoogleUser && this.newPassword && this.newPassword.length < 6) {
-        return;
+      if (!this.isGoogleUser && this.email !== user.email) {
+        await updateEmail(user, this.email);
       }
 
-      if (!this.isGoogleUser && this.newPassword && this.newPassword !== this.confirmPassword) {
-        return;
-      }
-
-      const auth = getAuth();
-      const user = auth.currentUser;
-      const displayName = `${this.firstName} ${this.lastName}`;
-      const updates = { displayName };
-
-      try {
-        if (this.photoFile) {
-          const reader = new FileReader();
-          reader.onloadend = async () => {
+      if (this.photoFile) {
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          try {
             updates.photoURL = reader.result;
             await updateProfile(user, updates);
             alert("Profile updated!");
-          };
-          reader.readAsDataURL(this.photoFile);
+          } catch (err) {
+            console.error("Error updating profile:", err);
+            alert("Failed to update profile.");
+          } finally {
+            this.updatingProfile = false;
+          }
+        };
+        reader.readAsDataURL(this.photoFile);
+        return;
+      } else {
+        await updateProfile(user, updates);
+        alert("Profile updated!");
+      }
+    } catch (err) {
+      console.error("Error updating profile:", err);
+      alert("Failed to update profile.");
+    } finally {
+      try {
+        const userDocRef = docRef(db, "users", user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+
+        if (userDocSnap.exists()) {
+          await updateDoc(userDocRef, {
+            address: this.address,
+            phone: this.phone
+          });
         } else {
-          await updateProfile(user, updates);
-          alert("Profile updated!");
+          await setDoc(userDocRef, {
+            address: this.address,
+            phone: this.phone,
+            uid: user.uid,
+            createdAt: new Date()
+          });
         }
       } catch (err) {
-        console.error("Error updating profile:", err);
-        alert("Failed to update profile.");
+        console.error("Error writing user info to Firestore:", err);
+        alert("Failed to save address/phone.");
       }
+
+      this.updatingProfile = false;
     }
+  },
+
+  async cancelBooking(bookingId) {
+    if (!confirm("Are you sure you want to cancel this booking?")) return;
+    try {
+      await deleteDoc(doc(db, "bookings", bookingId));
+      this.parkingHistory = this.parkingHistory.filter(b => b.id !== bookingId);
+    } catch (err) {
+      console.error("Error canceling booking:", err);
+    }
+  },
+
+  async fetchListings() {
+    if (!this.user) return;
+    this.loadingListings = true;
+    try {
+      const q = query(
+        collection(db, "listings"),
+        where("ownerId", "==", this.user.uid)
+      );
+      const querySnapshot = await getDocs(q);
+      this.listings = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+    } catch (err) {
+      console.error("Error fetching listings:", err);
+    } finally {
+      this.loadingListings = false;
+    }
+  },
+
+  async deleteListing(listingId) {
+    if (!confirm("Are you sure you want to delete this listing?")) return;
+    try {
+      await deleteDoc(doc(db, "listings", listingId));
+      this.listings = this.listings.filter(listing => listing.id !== listingId);
+    } catch (err) {
+      console.error("Error deleting listing:", err);
+      alert("Could not delete the listing.");
+    }
+  },
+
+  openEditModal(listing) {
+    this.editingListing = listing;
+    this.editForm = {
+      address: listing.address || '',
+      price: listing.price || '',
+      startTime: listing.startTime || '',
+      endTime: listing.endTime || '',
+      availableWeekdays: listing.availableWeekdays || []
+    };
+  },
+
+  cancelEdit() {
+    this.editingListing = null;
+  },
+
+  async saveEdit() {
+    if (!this.editingListing?.id) return;
+    try {
+      const docRef = doc(db, "listings", this.editingListing.id);
+      await updateDoc(docRef, { ...this.editForm });
+      Object.assign(this.editingListing, this.editForm);
+      this.editingListing = null;
+    } catch (err) {
+      console.error("Failed to update listing:", err);
+      alert("Could not save changes.");
+    }
+  },
+
+  async fetchParkingHistory() {
+    if (!this.user) return;
+    this.loadingHistory = true;
+    try {
+      const q = query(
+        collection(db, "bookings"),
+        where("renterId", "==", this.user.uid)
+      );
+      const snapshot = await getDocs(q);
+      this.parkingHistory = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+    } catch (err) {
+      console.error("Error fetching parking history:", err);
+    } finally {
+      this.loadingHistory = false;
+    }
+  },
+
+  async fetchRentalHistory() {
+    if (!this.user) return;
+    this.loadingRentalHistory = true;
+    try {
+      const q = query(
+        collection(db, "rentalHistory"),
+        where("ownerId", "==", this.user.uid)
+      );
+      const snapshot = await getDocs(q);
+      const records = await Promise.all(
+        snapshot.docs.map(async doc => {
+          const data = doc.data();
+          let renterName = "Unknown";
+          try {
+            const userDoc = await getDoc(doc(db, "users", data.renterId));
+            if (userDoc.exists()) {
+              const userInfo = userDoc.data();
+              renterName = userInfo.displayName || userInfo.firstName || userInfo.email || data.renterId;
+            }
+          } catch (err) {
+            console.warn("Failed to fetch renter info:", err);
+          }
+          return {
+            id: doc.id,
+            ...data,
+            renterName
+          };
+        })
+      );
+      this.rentalHistory = records;
+    } catch (err) {
+      console.error("Error fetching rental history:", err);
+    } finally {
+      this.loadingRentalHistory = false;
+    }
+  },
+
+  onFileChange(e) {
+    if (this.isGoogleUser) return;
+    const file = e.target.files[0];
+    if (file && file.size > 2 * 1024 * 1024) {
+      alert("Image must be smaller than 2MB.");
+      return;
+    }
+    this.photoFile = file;
+    this.previewUrl = URL.createObjectURL(file);
+  },
+
+  mapWeekdays(codes) {
+    const dayMap = {
+      M: "Monday",
+      T: "Tuesday",
+      W: "Wednesday",
+      Th: "Thursday",
+      F: "Friday",
+      Sa: "Saturday",
+      Su: "Sunday"
+    };
+
+    if (typeof codes === 'string') {
+      codes = codes.split(',').map(code => code.trim());
+    }
+
+    if (!Array.isArray(codes)) return '';
+    return codes.map(code => dayMap[code] || code).join(', ');
+  },
+
+  mapDay(day) {
+    const days = {
+      M: "Monday",
+      T: "Tuesday",
+      W: "Wednesday",
+      Th: "Thursday",
+      F: "Friday",
+      Sa: "Saturday",
+      Su: "Sunday"
+    };
+    return days[day] || day;
+  },
+
+  formatDate(date) {
+    if (!date) return "N/A";
+    return new Intl.DateTimeFormat("en-GB", {
+      dateStyle: "short",
+      timeStyle: "short"
+    }).format(date.toDate ? date.toDate() : date);
   }
-};
+}
+}
 </script>
 
 
