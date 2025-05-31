@@ -29,7 +29,7 @@ input[type="number"] {
   font-style: normal;
 }
 
-/* ✅ Apply the font to elements */
+/* Apply the font to elements */
 body {
   font-family: "Nunito Sans", sans-serif;
 }

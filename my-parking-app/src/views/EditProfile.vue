@@ -295,7 +295,6 @@ export default {
       availableWeekdays: [],
     },
 
-    
       rentalHistory: [],
       parkingHistory: [],
       loadingHistory: false
@@ -501,9 +500,9 @@ async updateProfile() {
     this.loadingListings = true;
     try {
       const q = query(
-        collection(db, "listings"),
-        where("ownerId", "==", this.user.uid)
-      );
+  collection(db, "parkingSpots"),
+  where("ownerId", "==", this.user.uid)
+);
       const querySnapshot = await getDocs(q);
       this.listings = querySnapshot.docs.map((doc) => ({
         id: doc.id,
@@ -519,7 +518,7 @@ async updateProfile() {
   async deleteListing(listingId) {
     if (!confirm("Are you sure you want to delete this listing?")) return;
     try {
-      await deleteDoc(doc(db, "listings", listingId));
+      await deleteDoc(doc(db, "parkingSpots", listingId));
       this.listings = this.listings.filter(listing => listing.id !== listingId);
     } catch (err) {
       console.error("Error deleting listing:", err);
@@ -527,16 +526,19 @@ async updateProfile() {
     }
   },
 
-  openEditModal(listing) {
-    this.editingListing = listing;
-    this.editForm = {
-      address: listing.address || '',
-      price: listing.price || '',
-      startTime: listing.startTime || '',
-      endTime: listing.endTime || '',
-      availableWeekdays: listing.availableWeekdays || []
-    };
-  },
+openEditModal(listing) {
+  this.editingListing = listing;
+  this.editForm = {
+    address: listing.address || '',
+    price: listing.price || '',
+    startTime: listing.startTime || '',
+    endTime: listing.endTime || '',
+    availableWeekdays: Array.isArray(listing.availableWeekdays)
+      ? listing.availableWeekdays
+      : (listing.availableWeekdays || '').split(',').map(day => day.trim())
+  };
+}
+,
 
   cancelEdit() {
     this.editingListing = null;
