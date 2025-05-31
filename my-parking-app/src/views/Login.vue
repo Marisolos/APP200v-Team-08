@@ -1,6 +1,5 @@
 <template>
   <div class="page-container">
-    <!-- White Box Wrapper -->
     <div class="login-wrapper">
       <!-- Left Side: Login Form -->
       <div class="login-form-container">
@@ -13,7 +12,6 @@
           Sign in with Google
         </button>
 
-        <!-- Divider -->
         <p class="divider">or</p>
 
         <!-- Email Sign-In Form -->
@@ -23,8 +21,10 @@
           <button type="submit" class="login-btn">Sign in with Email</button>
         </form>
 
-        <!-- Signup Option -->
-        <p class="signup-text">Don't have an account? <span @click="signUpWithEmail" class="signup-link">Sign up</span></p>
+        <p class="signup-text">
+          Don't have an account?
+          <span @click="signUpWithEmail" class="signup-link">Sign up</span>
+        </p>
       </div>
 
       <!-- Right Side: Image -->
@@ -33,84 +33,133 @@
       </div>
     </div>
   </div>
-
-
 </template>
 
 <script>
 import { auth, provider } from "../firebase";
-import { signInWithPopup, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+import {
+  signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword
+} from "firebase/auth";
+import { db } from "@/firebase";
+import {
+  doc,
+  setDoc,
+  getDoc,
+  updateDoc,
+  collection,
+  getDocs
+} from "firebase/firestore";
+
 
 export default {
-
   name: "UserLogin",
   data() {
     return {
       email: "",
-      password: "",
+      password: ""
     };
   },
-
   methods: {
     async signInWithGoogle() {
       try {
-        await signInWithPopup(auth, provider);
-        this.$router.push("/finn-parkering"); // ADD THIS
+        const result = await signInWithPopup(auth, provider);
+        await this.saveUserToFirestore(result.user);
+        this.$router.push("/finn-parkering");
       } catch (error) {
         console.error("Google Sign-In Error:", error);
       }
     },
+
     async signInWithEmail() {
       try {
-        await signInWithEmailAndPassword(auth, this.email, this.password);
-        this.$router.push("/finn-parkering"); // ADD THIS
+        const result = await signInWithEmailAndPassword(auth, this.email, this.password);
+        await this.saveUserToFirestore(result.user);
+        this.$router.push("/finn-parkering");
       } catch (error) {
         console.error("Email Sign-In Error:", error);
         alert(error.message);
       }
     },
+
     async signUpWithEmail() {
       try {
-        await createUserWithEmailAndPassword(auth, this.email, this.password);
+        const result = await createUserWithEmailAndPassword(auth, this.email, this.password);
+        await this.saveUserToFirestore(result.user);
         this.$router.push("/finn-parkering");
       } catch (error) {
         console.error("Sign-Up Error:", error);
         alert(error.message);
       }
+    },
+
+   async saveUserToFirestore(user) {
+  if (!user || !user.uid) return;
+
+  const userRef = doc(db, "users", user.uid);
+  const docSnap = await getDoc(userRef);
+
+  const email = user.email || "user@example.com";
+  const base = email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+  let username = base;
+
+  // Only fetch all usernames if needed
+  if (!docSnap.exists() || !docSnap.data().username) {
+    const usersSnap = await getDocs(collection(db, "users"));
+    const existingUsernames = usersSnap.docs
+      .map(doc => doc.data().username)
+      .filter(Boolean);
+
+    let count = 1;
+    while (existingUsernames.includes(username)) {
+      username = `${base}${count++}`;
     }
+  }
+
+  if (!docSnap.exists()) {
+    await setDoc(userRef, {
+      uid: user.uid,
+      email,
+      username,
+      createdAt: new Date()
+    });
+  } else {
+    const userData = docSnap.data();
+    if (!userData.username) {
+      await updateDoc(userRef, { username });
+    }
+  }
+}
+
   }
 };
 </script>
 
 <style scoped>
-/*  Full Page Background */
-/*  Ensure Full-Screen Fit */
-/*  Full Page Background */
 .page-container {
   background-color: #ABC89D;
-  height: 100vh; /* Full viewport height */
+  height: 100vh;
   display: flex;
   justify-content: center;
-  align-items: flex-start; /*  Moves content closer to the top */
-  padding-top: 40px; /*  Adds some space from the top */
-  overflow: hidden; /* Prevents scrolling */
+  align-items: flex-start;
+  padding-top: 40px;
+  overflow: hidden;
 }
 
-/* ✅ White Box Container */
 .login-wrapper {
   background-color: white;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 800px; /* Fixed width */
-  height: 70vh; /*  Reduced height to bring it higher */
+  width: 800px;
+  height: 70vh;
   border-radius: 20px;
   box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
   overflow: hidden;
   position: relative;
 }
 
-/* ✅ Login Form (Left Side) */
 .login-form-container {
   width: 50%;
   padding: 40px;
@@ -129,7 +178,6 @@ export default {
   margin-bottom: 20px;
 }
 
-/* ✅ Buttons */
 .login-btn {
   background-color: #5B8D8A;
   color: white;
@@ -151,13 +199,11 @@ export default {
   background-color: #FED28D;
 }
 
-/* ✅ Google Icon */
 .google-icon {
   width: 20px;
   margin-right: 10px;
 }
 
-/* ✅ Input Fields */
 .login-form input {
   width: 100%;
   padding: 10px;
@@ -167,7 +213,6 @@ export default {
   font-size: 16px;
 }
 
-/* ✅ Sign-Up Link */
 .signup-text {
   margin-top: 10px;
   font-size: 14px;
@@ -180,29 +225,21 @@ export default {
   text-decoration: none;
 }
 
-/* ✅ Right Side: Image */
 .login-image {
   width: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #ffffff; /* Light background behind image */
+  background-color: #ffffff;
   height: 100%;
-  border-top-right-radius: 20px; /* Rounded corner on the top-right */
-  border-bottom-right-radius: 20px; /* Rounded corner on the bottom-right */
-  border-top-left-radius: 20px; /* Rounded corner on the top-left */
-  border-bottom-left-radius: 20px; /* Rounded corner on the bottom-left */
-  overflow: hidden; /* Ensures image does not overflow */
+  border-radius: 20px;
+  overflow: hidden;
 }
 
 .login-image img {
   width: 95%;
   height: 95%;
   object-fit: cover;
-  border-top-right-radius: 20px; /* Matches the parent div */
-  border-bottom-right-radius: 20px; /* Matches the parent div */
-  border-top-left-radius: 20px; /* Rounded corner on the top-left */
-  border-bottom-left-radius: 20px; /* Rounded corner on the bottom-left */
+  border-radius: 20px;
 }
 </style>
-
