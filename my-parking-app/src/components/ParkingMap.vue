@@ -1,6 +1,6 @@
 <!-- Author: Hedvig -->
 <template>
-<!-- Kartet -->
+  <!-- Map -->
   <GMapMap
     class="map-container"
     :center="center"
@@ -8,7 +8,7 @@
     map-type-id="roadmap"
     style="width: 100%; height: 500px"
   >
-  <!-- Markør på kartet -->
+    <!-- Map markers -->
     <GMapMarker
       v-for="spot in displayedParkingSpots"
       :key="spot.id"
@@ -16,7 +16,7 @@
       @click="openInfoWindow(spot)"
     />
 
-    <!-- Infoboks som vises når en markør er valgt -->
+    <!-- Info window shown when a marker is clicked -->
     <GMapInfoWindow
       v-if="currentInfoWindow && typeof currentInfoWindow.lat === 'number' && typeof currentInfoWindow.lng === 'number'"
       :position="{ lat: Number(currentInfoWindow.lat), lng: Number(currentInfoWindow.lng) }"
@@ -24,9 +24,9 @@
       @closeclick="closeInfoWindow"
       :options="{ pixelOffset: { width: 0, height: -35 } }"
     >
-
-    <!-- Innholdet i infoboksen -->
-      <div class="info-window-card"> <h3 class="info-title">{{ currentInfoWindow.postCode }} {{ currentInfoWindow.city }}</h3>
+      <!-- Info window displaying details of the selected parking spot -->
+      <div class="info-window-card">
+        <h3 class="info-title">{{ currentInfoWindow.postCode }} {{ currentInfoWindow.city }}</h3>
         <p class="info-detail">Price: {{ currentInfoWindow.price }} kr/hour</p>
         <p class="info-detail" v-if="currentInfoWindow.availability">Available: {{ currentInfoWindow.availability }}</p>
       </div>
@@ -35,9 +35,9 @@
 </template>
 
 <script>
-// Importer Google Maps komponenter
+// Import Google Maps components
 import { GMapMap, GMapMarker, GMapInfoWindow } from '@fawmi/vue-google-maps';
-// Importerer Firestore og databasen
+// Import Firestore and the database instance
 import { db } from '@/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 
@@ -54,7 +54,7 @@ export default {
       required: true
     },
 
-  // Start-zoom for kartet
+    // Initial zoom level for the map
     zoom: {
       type: Number,
       default: 13
@@ -67,19 +67,20 @@ export default {
   },
   data() {
     return {
-      allParkingSpotsFromFirebase: [], // Lagrer alle parkeringsplassene ved lasting
-      currentInfoWindow: null,         // Holder data for den valgte parkeringsplassen for infoboks
-      infoWindowOpened: false          // Kontrollerer synligheten av infoboksen
+      allParkingSpotsFromFirebase: [], // Stores all parking spots when loaded
+      currentInfoWindow: null,         // Holds data for the selected parking spot's info window
+      infoWindowOpened: false          // Controls visibility of the info window
     };
   },
-  //vis alle plasser ved søk
+
+  // Shows all spots when no search filter is applied
   computed: {
     displayedParkingSpots() {
       return this.listingsToShow.length > 0 ? this.listingsToShow : this.allParkingSpotsFromFirebase;
     }
   },
-  
-  // Henter alle parkeringsplasser fra Firebase når komponenten lastes
+
+  // Fetches all parking spots from Firebase when the component is created
   async created() {
     try {
       const snapshot = await getDocs(collection(db, 'listings'));
@@ -88,8 +89,8 @@ export default {
         return {
           id: doc.id,
           ...data,
-          lat: Number(data.lat), // Konverterer lat til tall 
-          lng: Number(data.lng), // Konverterer lng til tall
+          lat: Number(data.lat), // Converts latitude to number
+          lng: Number(data.lng), // Converts longitude to number
           postCode: data.postCode || '',
           city: data.city || '',
           price: data.price || '',
@@ -101,8 +102,9 @@ export default {
       console.error('Error fetching parking spots from Firebase:', error);
     }
   },
+
   methods: {
-    // Åpne og lukke infoboksen til valgt markør
+    // Opens and closes the info window for the selected marker
     openInfoWindow(spot) {
       if (this.currentInfoWindow && this.currentInfoWindow.id === spot.id && this.infoWindowOpened) {
         this.closeInfoWindow();
@@ -114,14 +116,13 @@ export default {
 
     closeInfoWindow() {
       this.infoWindowOpened = false;
-      // Forsinkelse for å sikre at infoboksen visuelt lukkes før data nullstilles
+      // Delay to ensure the info window is visually closed before resetting data
       setTimeout(() => {
         this.currentInfoWindow = null;
       }, 100);
     }
   }
 };
-
 </script>
 
 <style scoped>
@@ -130,7 +131,7 @@ export default {
   height: 500px;
 }
 
-/*infoboksen*/
+/* Info window styling */
 .info-window-card {
   background-color: white;
   border-radius: 12px; 
@@ -143,7 +144,7 @@ export default {
   text-align: center;
 }
 
-/* postnummer og poststed */
+/* Postcode and city name */
 .info-title {
   font-size: 16px; 
   font-weight: bold;
@@ -152,7 +153,7 @@ export default {
   margin-bottom: 8px; 
 }
 
-/* pris og tilgjengelighet */
+/* Price and availability */
 .info-detail {
   margin-bottom: 5px; 
   line-height: 1.3;
