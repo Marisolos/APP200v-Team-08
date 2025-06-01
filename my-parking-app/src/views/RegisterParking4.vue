@@ -80,6 +80,9 @@ import { useRegisterFormStore } from '@/stores/registerForm';
 import { db } from '@/firebase';
 import { getAuth } from 'firebase/auth';
 import { addDoc, collection, serverTimestamp, getDocs, query, where } from 'firebase/firestore';
+import { useRouter } from 'vue-router';
+import { getStorage, ref as firebaseRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+
 
 const form = useRegisterFormStore();
 const router = useRouter();
@@ -109,7 +112,7 @@ const uploadedImageUrls = [];
 
   for (const image of form.images) {
   if (image.file instanceof File) {
-    const storageRef = ref(storage, `listingImages/${user.uid}/${Date.now()}-${image.name}`);
+    const storageRef = firebaseRef(storage, `listingImages/${user.uid}/${Date.now()}-${image.name}`);
     try {
       const snapshot = await uploadBytes(storageRef, image.file);
       const downloadURL = await getDownloadURL(snapshot.ref);

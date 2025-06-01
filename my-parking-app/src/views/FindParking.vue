@@ -25,7 +25,6 @@
 
 import { ref, onMounted, onActivated, onDeactivated } from 'vue';
 import { db } from '@/firebase';
-import { collection, getDocs } from 'firebase/firestore'; 
 import { collection, getDocs, addDoc, query, where, serverTimestamp } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
