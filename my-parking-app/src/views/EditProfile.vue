@@ -127,10 +127,38 @@
       <div v-else-if="parkingHistory.length === 0">You haven’t booked any spots yet.</div>
       <div v-else>
         <div v-for="booking in parkingHistory" :key="booking.id" class="listing-card">
-          <p><strong>Address:</strong> {{ booking.address }}</p>
-          <p><strong>Booked:</strong> {{ formatDate(booking.createdAt?.toDate?.()) }}</p>
-          <p><strong>Time:</strong> {{ booking.startTime }}–{{ booking.endTime }} on {{ booking.day }}</p>
-          <button class="cancel-btn" @click="cancelBooking(booking.id)">Cancel</button>
+<div v-for="booking in parkingHistory" :key="booking.id" class="listing-card">
+  <p><strong>Address:</strong> {{ booking.address }}</p>
+  <p><strong>Booked:</strong> {{ formatDate(booking.createdAt?.toDate?.()) }}</p>
+  <p><strong>Time:</strong> {{ booking.startTime }}–{{ booking.endTime }} on {{ booking.day }}</p>
+
+  <!-- Canceled message -->
+<p v-if="booking.canceledAt" style="color: crimson; font-style: italic;">
+  This parking was canceled on {{ formatDate(parseDate(booking.canceledAt)) }}
+</p>
+
+
+  <!-- Cancel button, only if not canceled -->
+  <button
+    class="cancel-btn"
+    @click="cancelBooking(booking.id)"
+    v-if="!booking.canceledAt"
+  >
+    Cancel
+  </button>
+
+  <!-- Greyed out button for canceled bookings -->
+  <button
+    class="cancel-btn"
+    disabled
+    v-else
+    style="background-color: #ccc; cursor: not-allowed;"
+  >
+    Canceled
+  </button>
+</div>
+
+
         </div>
       </div>
     </div>
@@ -479,16 +507,34 @@ async updateProfile() {
   }
 },
 
+async cancelBooking(bookingId) {
+  if (!confirm("Are you sure you want to cancel this booking?")) return;
+  try {
+    const cancelTime = new Date();
 
-  async cancelBooking(bookingId) {
-    if (!confirm("Are you sure you want to cancel this booking?")) return;
-    try {
-      await deleteDoc(doc(db, "bookings", bookingId));
-      this.parkingHistory = this.parkingHistory.filter(b => b.id !== bookingId);
-    } catch (err) {
-      console.error("Error canceling booking:", err);
+    // Mark the booking as canceled by updating the document
+    await updateDoc(doc(db, "bookings", bookingId), {
+      canceledAt: cancelTime
+    });
+
+    // Reflect the update in the local state so the UI updates immediately
+    const booking = this.parkingHistory.find(b => b.id === bookingId);
+    if (booking) {
+      booking.canceledAt = cancelTime;
     }
-  },
+
+    alert("Booking canceled and marked in your history.");
+  } catch (err) {
+    console.error("Error canceling booking:", err);
+    alert("Failed to cancel the booking. Please try again.");
+  }
+},
+
+parseDate(date) {
+  if (!date) return null;
+  return typeof date.toDate === 'function' ? date.toDate() : date;
+},
+
 
   async fetchListings() {
     if (!this.user) return;
