@@ -73,6 +73,7 @@
           <div class="progress-fill" :style="{ width: `${(currentStep / totalSteps) * 100}%` }"></div>
         </div>
         <span class="progress-text">{{ $t('register.page', { current: currentStep, total: totalSteps }) }}</span>
+        </div>
     <button class="search-button" @click="validateAndGoToNextPage">{{ $t('register.next') }}</button>
   </div>
   </div>
