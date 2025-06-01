@@ -1,33 +1,32 @@
 <template>
   <div class="register-container">
-    <h2 class="page-title">Registrer parkering</h2>
+    <h2 class="page-title">{{ $t('register.title') }}</h2>
 
     <div class="form-section center">
-      <label><strong>📍 Bruk lagret adresse fra profilen?</strong></label><br>
-      <label><input type="radio" name="useSavedAddress" checked> Ja, bruk lagret adresse</label>
-      <label style="margin-left: 16px;"><input type="radio" name="useSavedAddress"> Nei, jeg vil skrive inn en ny adresse</label>
+      <label><strong>{{ $t('register.useSavedAddress.question') }}</strong></label><br>
+      <label><input type="radio" name="useSavedAddress" checked>{{ $t('register.useSavedAddress.yes') }}</label>
+      <label style="margin-left: 16px;"><input type="radio" name="useSavedAddress">{{ $t('register.useSavedAddress.no') }}</label>
     </div>
 
     <div class="form-section">
-      <label>Adresse</label>
-      <span v-if="errors.adresse && touched.adresse" class="error-text">
-        {{ errors.adresseMessage || 'Adresse må fylles ut' }}
-      </span>
+      <label>{{ $t('register.address.label') }}</label>
       <AddressAutocomplete 
       @blur="touched.adresse = true"
       @focus="errors.adresse = false"
       :errors="errors"
       :touched="touched"
       @postcode-updated="hentPoststed"/>
+      <span v-if="errors.adresse && touched.adresse" class="error-text">
+        {{ errors.adresseMessage || $t('register.address.error') }}
+      </span>
     </div>
 
     <div class="form-section">
-      <label>Postnummer / Poststed</label>
-      <span v-if="errors.postnummer && touched.postnummer" class="error-text"> // må fylles ut</span>
+      <label>{{ $t('register.postcode.label') }}</label>
       <div class="horizontal-group">
         <input
           type="text"
-          placeholder="Postnummer"
+          :placeholder="$t('register.postcode.placeholder')"
           v-model="form.postnummer"
           @input="hentPoststed"
           @blur="touched.postnummer = true"
@@ -39,17 +38,17 @@
         />
         <input
           type="text"
-          placeholder="Poststed"
+          :placeholder="$t('register.postplace.placeholder')"
           v-model="form.poststed"
           readonly
           class="text-input readonly"
         />
       </div>
+      <span v-if="errors.postnummer && touched.postnummer" class="error-text">{{ $t('register.postcode.error') }}</span>
     </div>
 
     <div class="form-section">
-      <label>Pris</label>
-      <span v-if="errors.pris && touched.pris" class="error-text"> // må fylles ut</span>
+      <label>{{ $t('register.price.label') }}</label>
       <div class="price-group">
         <div class="price-wrapper">
           <input type="text" v-model="form.pris" @input="validerPris" @blur="touched.pris = true" @focus="errors.pris = false"
@@ -59,22 +58,27 @@
           <span class="price-label">kr</span>
         </div>
         <select class="text-input select-tid" v-model="form.betalingsperiode">
-          <option>per time</option>
-          <option>per dag</option>
-          <option>per uke</option>
-          <option>per måned</option>
+          <option>{{ $t('register.price.perHour') }}</option>
+          <option>{{ $t('register.price.perDay') }}</option>
+          <option>{{ $t('register.price.perWeek') }}</option>
+          <option>{{ $t('register.price.perMonth') }}</option>
         </select>
       </div>
+      <span v-if="errors.pris && touched.pris" class="error-text">{{ $t('register.price.error') }}</span>
     </div>
 
-    <div class="form-section right" style="display: flex; align-items: center; justify-content: space-between;">
-      <div class="progress-container">
+    <div class="form-section" style="position: relative; display: flex; align-items: center; justify-content: flex-end; min-height: 80px;">
+      <div style="position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 12px;">
         <div class="progress-bar">
           <div class="progress-fill" :style="{ width: `${(currentStep / totalSteps) * 100}%` }"></div>
-        </div> <span class="progress-text">Side {{ currentStep }} av {{ totalSteps }}</span>
+        </div>
+        <span class="progress-text">{{ $t('register.page', { current: currentStep, total: totalSteps }) }}</span>
       </div>
-        <button class="search-button" @click="validateAndGoToNextPage">Neste side →</button>
-      </div>
+<<<<<<< HEAD
+=======
+    <button class="search-button" @click="validateAndGoToNextPage">{{ $t('register.next') }}</button>
+  </div>
+>>>>>>> 6d899375ad8e16491b61e96c7e310840fc5f4d61
   </div>
 </template>
 
@@ -139,10 +143,10 @@ export default {
         const erGyldigAdresse = await this.validateAdresseMedNominatim()
         if (!erGyldigAdresse) {
           this.errors.adresse = true
-          this.errors.adresseMessage = 'Ugyldig adresse. Vennligst velg en fra listen.'
+          this.errors.adresseMessage = this.$t('register.address.invalid')
           return
         }
-
+        this.form.progressLevel = 2;
         this.$router.push('/register-parking-2')
       }
     },
@@ -314,6 +318,22 @@ export default {
 .progress-text {
   font-size: 14px;
   color: #333;
+}
+
+.nav-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.nav-footer .progress-container {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
 }
 
 </style>

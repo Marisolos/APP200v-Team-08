@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { getAuth } from "firebase/auth";
+import { useRegisterFormStore } from '@/stores/registerForm';
+
 
 import Login from "@/views/Login.vue";
 import FindParking from "@/views/FindParking.vue";
@@ -39,7 +41,26 @@ router.beforeEach((to, from, next) => {
     next("/login");
   } else if (to.path === "/login" && user) {
     next("/finn-parkering");
-  } else {
+  } 
+  
+else if (to.path.startsWith('/register-parking')) {
+  const form = useRegisterFormStore();
+  const stepOrder = [
+    '/register-parking-1',
+    '/register-parking-2',
+    '/register-parking-3',
+    '/register-parking-4'
+  ];
+  const targetStep = stepOrder.indexOf(to.path);
+
+  // Bruk progressLevel til å begrense tilgang
+  if (form.progressLevel < targetStep + 1) {
+    return next(stepOrder[form.progressLevel - 1] || '/register-parking-1');
+  }
+
+  // Hvis alt er ok, gå videre
+  next();
+} else {
     next();
   }
 });

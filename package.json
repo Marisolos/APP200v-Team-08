@@ -2,6 +2,7 @@
   "dependencies": {
     "@fawmi/vue-google-maps": "^0.9.79",
     "@firebase/auth": "^1.9.0",
+    "cropperjs": "^2.0.0",
     "firebase": "^11.3.1",
     "pinia": "^3.0.2",
     "vue-router": "^4.5.0"

@@ -1,11 +1,11 @@
 <template>
     <div class="register-container">
-      <h2 class="page-title">Registrer parkeringsplass</h2>
+      <h2 class="page-title">{{ $t('register.title') }}</h2>
   
       <!-- Bildeopplasting -->
       <div class="form-section">
-        <h3>Pictures</h3>
-        <label>Upload some pictures of the parking spot</label>
+        <h3>{{ $t('register.images.title') }}</h3>
+        <label>{{ $t('register.images.description') }}</label>
         <div class="upload-container" :class="{ 'dragging': isDraggingOver }" @dragover.prevent="handleDragOver" @dragleave="isDraggingOver = false" @drop="handleDrop">
           <input
             type="file"
@@ -16,17 +16,20 @@
             style="display: none"
           />
             <button class="upload-button" @click="triggerFileInput" :disabled="form.images.length >= 4">
-                Velg bilder (maks 4)
+                {{ $t('register.images.button') }}
             </button>
-          <p v-if="form.images.length >= 4">Maksimalt 4 bilder tillatt.</p>
+          <p v-if="form.images.length >= 4">{{ $t('register.images.tooMany') }}</p>
         </div>
+        <p v-if="errors.images && touched.images" style="color: red; margin-top: 8px;">
+          {{ $t('register.images.validation') }}
+        </p>
         <div class="image-preview-container">
           <div
             class="image-preview"
             v-for="(image, index) in form.images"
             :key="image.id"
           >
-            <img :src="image.url" :alt="'Bilde ' + (index + 1)" />
+            <img :src="getPreviewUrl(image)" :alt="'Bilde ' + (index + 1)" />
             <div class="image-actions">
               <button @click="moveImage(index, -1)" :disabled="index === 0">⬅️</button>
               <button @click="moveImage(index, 1)" :disabled="index === form.images.length - 1">➡️</button>
@@ -38,53 +41,74 @@
   
       <!-- Retningslinjer -->
       <div class="form-section">
-        <h3 for="guidelines">Rules</h3>
-        <label>Let your guests know which rules they have to follow</label>
+        <h3 for="guidelines">{{ $t('register.rules.title') }}</h3>
+        <label>{{ $t('register.rules.description') }}</label>
         <textarea
           id="guidelines"
           v-model="form.guidelines"
           maxlength="500"
-          placeholder="Skriv inn retningslinjer her..."
+          :placeholder="$t('register.guidelines.placeholder')"
         ></textarea>
-        <p>{{ form.guidelines.length }}/500 tegn brukt</p>
+        <p>{{ $t('register.guidelines.count', { count: form.guidelines.length }) }}</p>
       </div>
   
       <!-- Ekstra informasjon -->
       <div class="form-section">
-        <h3 for="additionalInfo">Additional info</h3>
-        <label>Is there anything else you'd like to tell your guests?</label>
+        <h3 for="additionalInfo">{{ $t('register.additionalInfo.title') }}</h3>
+        <label>{{ $t('register.additionalInfo.description') }}</label>
         <textarea
           id="additionalInfo"
           v-model="form.additionalInfo"
           maxlength="500"
-          placeholder="Skriv inn ekstra informasjon her..."
+          :placeholder="$t('register.additionalInfo.placeholder')"
         ></textarea>
-        <p>{{ form.additionalInfo.length }}/500 tegn brukt</p>
+        <p>{{ $t('register.additionalInfo.count', { count: form.additionalInfo.length }) }}</p>
       </div>
-  
-      <div class="form-section right" style="display: flex; align-items: center; justify-content: space-between;">
-        <div class="progress-container">
-            <div class="progress-bar">
-            <div class="progress-fill" :style="{ width: `${(currentStep / totalSteps) * 100}%` }"></div>
-            </div> <span class="progress-text">Side {{ currentStep }} av {{ totalSteps }}</span>
-        </div>
-        <router-link to="/register-parking-4">
-            <button class="search-button">Neste side →</button>
-        </router-link>
+
+    <div v-if="showConfirmCheckbox" :class="['form-section', { 'warning-box': !confirmEmptyTextAccepted }]">
+      <label :style="{ color: !confirmEmptyTextAccepted ? 'red' : '#333' }">
+        <input type="checkbox" v-model="confirmEmptyTextAccepted" />
+        {{ $t('register.rulesAndAdditionalInfo.confirmation') }}
+      </label>
     </div>
+<<<<<<< HEAD
+=======
+  
+      <div class="form-section nav-footer">
+  <router-link to="/register-parking-2">
+    <button class="search-button" style="padding: 10px 31px;">{{ $t('register.back') }}</button>
+  </router-link>
+  <div class="progress-container">
+    <div class="progress-bar">
+      <div class="progress-fill" :style="{ width: `${(currentStep / totalSteps) * 100}%` }"></div>
+    </div>
+    <span class="progress-text">{{ $t('register.page', { current: currentStep, total: totalSteps }) }}</span>
+  </div>
+  <button class="search-button" @click="validateAndGoToNextPage">{{ $t('register.next') }}</button>
+</div>
+>>>>>>> 6d899375ad8e16491b61e96c7e310840fc5f4d61
 </div>
 </template>
   
   <script setup>
   import { useRegisterFormStore } from '@/stores/registerForm'
   import { ref } from 'vue'
+<<<<<<< HEAD
 
+=======
+  import { useRouter } from 'vue-router'
+  const router = useRouter()
+  const errors = ref({ images: false })
+  const touched = ref({ images: false })
+>>>>>>> 6d899375ad8e16491b61e96c7e310840fc5f4d61
   const currentStep = 3;
   const totalSteps = 4;
-
   const isDraggingOver = ref(false)
   const form = useRegisterFormStore()
   const fileInput = ref(null)
+  const confirmEmptyTextAccepted = ref(false)
+  const showConfirmCheckbox = ref(false)
+
   
   function triggerFileInput() {
     fileInput.value.click()
@@ -105,25 +129,28 @@
 
   
   function processFiles(files) {
-    if (form.images.length >= 4) return
-    Array.from(files).forEach((file) => {
-      if (
-        form.images.length < 4 &&
-        file.type.startsWith("image/") &&
-        !form.images.some((img) => img.name === file.name)
-      ) {
-        const reader = new FileReader()
-        reader.onload = (e) => {
-          form.images.push({
-            id: Date.now() + Math.random(),
-            name: file.name,
-            url: e.target.result,
-          })
-        }
-        reader.readAsDataURL(file)
-      }
-    })
-  }
+  if (form.images.length >= 4) return;
+
+  Array.from(files).forEach((file) => {
+    if (
+      form.images.length < 4 &&
+      file.type.startsWith("image/") &&
+      !form.images.some((img) => img.name === file.name)
+    ) {
+      form.images.push({
+    file,
+    name: file.name,
+    previewUrl: URL.createObjectURL(file),
+    type: file.type,
+    }) // Lagrer File-objekt
+      errors.value.images = false
+      touched.value.images = false
+      console.log("Lagt til bilde:", file.name, file);
+      console.log("form.images nå:", form.images);
+    }
+  });
+}
+
   
   function moveImage(index, direction) {
     const newIndex = index + direction
@@ -144,7 +171,34 @@
 
   console.log(form);
 
-  </script>
+  function getPreviewUrl(image) {
+  return image.previewUrl || image.url || '';
+}
+
+function validateAndGoToNextPage() {
+
+  // Bildevalidering
+  errors.value.images = form.images.length === 0
+  touched.value.images = true
+
+  // Tekstvalidering
+  const guidelinesEmpty = !form.guidelines.trim()
+  const additionalInfoEmpty = !form.additionalInfo.trim()
+  const requiresConfirmation = (guidelinesEmpty || additionalInfoEmpty) && !confirmEmptyTextAccepted.value
+  showConfirmCheckbox.value = (guidelinesEmpty || additionalInfoEmpty)
+
+  // Hvis noen av kravene ikke er oppfylt, stopp
+  if (errors.value.images || requiresConfirmation) {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    return
+  }
+
+  // Alt OK – gå videre
+  form.progressLevel = 4;
+  router.push('/register-parking-4')
+}
+
+</script>
   
   
   <style scoped>
@@ -364,8 +418,8 @@
 }
 
 .upload-container.dragging {
-  border-color: #B3C3AF;
-  background-color: #f9fdf7;
+  border-color: #ABC89D;
+  background-color: #fff5e4;
   border-radius: 10px; /* Samme her for sikkerhets skyld */
 }
 
@@ -394,4 +448,25 @@
   font-size: 14px;
   color: #333;
 }
+
+.nav-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.nav-footer .progress-container {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  justify-content: center;
+}
+
+.warning-box {
+  background-color: #fff9f9;
+}
+
 </style>

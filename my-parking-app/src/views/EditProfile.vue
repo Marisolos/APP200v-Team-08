@@ -38,6 +38,14 @@
           </p>
         </label>
 
+        <label>
+          <h3>Username</h3>
+          <input type="text" v-model="username" placeholder="e.g. john_doe" />
+          <p class="validation-error" v-if="submitted && !/^[a-zA-Z0-9_]+$/.test(username)">
+            Username must contain only letters, numbers, or underscores.
+          </p>
+        </label>
+
         <h3>Contact info</h3>
 
         <label>
@@ -75,14 +83,13 @@
         </p>
 
         <button
-  type="button"
-  class="submit-btn"
-  @click="updateProfile"
-  :disabled="updatingProfile"
->
-  {{ updatingProfile ? "Saving..." : "Save" }}
-</button>
-
+          type="button"
+          class="submit-btn"
+          @click="updateProfile"
+          :disabled="updatingProfile"
+        >
+          {{ updatingProfile ? "Saving..." : "Save" }}
+        </button>
       </div>
 
       <!-- RIGHT SECTION -->
@@ -100,10 +107,20 @@
         <p v-if="isGoogleUser" class="google-warning pic-note">
           You're signed in with Google. To change your profile picture, update it in your Google Account.
         </p>
+
+        <!-- Delete account button aligned at the bottom -->
+        <div class="delete-account-container">
+          <p class="delete-warning">
+            Deleting your account will permanently remove your profile and all of your listings.
+          </p>
+          <button class="delete-account-btn" @click="confirmDeleteAccount">
+            Delete Account
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- === PARKING HISTORY TAB === -->
+    <!-- === HISTORY TAB === -->
     <div v-if="currentTab === 'history'" class="secondary-tab">
       <h2>Parking History</h2>
       <div v-if="loadingHistory">Loading your parking history...</div>
@@ -133,7 +150,7 @@
       </div>
     </div>
 
-    <!-- === MY LISTINGS TAB === -->
+    <!-- === LISTINGS TAB === -->
     <div v-if="currentTab === 'listings'" class="secondary-tab">
       <h2>My Listings</h2>
       <div v-if="loadingListings">Loading your listings...</div>
@@ -148,7 +165,6 @@
 
           <button class="submit-btn" @click="openEditModal(listing)">Edit</button>
 
-          <!-- === EDIT LISTING MODAL === -->
           <div v-if="editingListing?.id === listing.id" class="edit-modal">
             <h3>Edit Listing</h3>
 
@@ -182,18 +198,38 @@
         </div>
       </div>
     </div>
+<<<<<<< HEAD
+=======
+>>>>>>> 6d899375ad8e16491b61e96c7e310840fc5f4d61
   </div>
 </template>
 
+
+
+
+
+
 <script>
+
 import {
   getAuth,
   updateProfile,
   updateEmail,
   updatePassword,
   EmailAuthProvider,
-  reauthenticateWithCredential
+  GoogleAuthProvider,
+  reauthenticateWithPopup,
+  reauthenticateWithCredential,
+  deleteUser
 } from "firebase/auth";
+
+import {
+  getStorage,
+  ref as storageRef,
+  uploadBytes,
+  getDownloadURL
+} from "firebase/storage";
+
 
 import {
   collection,
@@ -210,6 +246,9 @@ import {
 import { db } from "@/firebase";
 import defaultAvatar from "@/assets/default-user.png";
 
+
+
+
 export default {
   name: "EditProfile",
 
@@ -218,6 +257,7 @@ export default {
       user: null,
       firstName: "",
       lastName: "",
+      username: "",
       address: "",
       phone: "",
       email: "",
@@ -245,13 +285,14 @@ export default {
         { label: "Sat", value: "Sa" },
         { label: "Sun", value: "Su" }
       ],
-      editForm: {
-        address: '',
-        price: '',
-        startTime: '',
-        endTime: '',
-        availableWeekdays: []
-      },
+    editForm: {
+      address: '',
+      price: '',
+      startTime: '',
+      endTime: '',
+      availableWeekdays: [],
+    },
+
       rentalHistory: [],
       parkingHistory: [],
       loadingHistory: false
@@ -270,17 +311,61 @@ async mounted() {
     this.lastName = this.user.displayName?.split(" ")[1] || "";
     this.email = this.user.email || "";
 
-    // Load phone and address from Firestore
     try {
       const userDocRef = docRef(db, "users", this.user.uid);
       const userDocSnap = await getDoc(userDocRef);
+
       if (userDocSnap.exists()) {
         const userData = userDocSnap.data();
         this.address = userData.address || "";
         this.phone = userData.phone || "";
+
+        // ✅ Only generate username if missing
+        if (userData.username) {
+          this.username = userData.username;
+        } else if (this.email) {
+          const baseUsername = this.email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+
+          const usersSnap = await getDocs(collection(db, "users"));
+          const existingUsernames = usersSnap.docs.map(doc => doc.data().username).filter(Boolean);
+
+          let generatedUsername = baseUsername;
+          let count = 1;
+          while (existingUsernames.includes(generatedUsername)) {
+            generatedUsername = `${baseUsername}${count++}`;
+          }
+
+          this.username = generatedUsername;
+
+          await updateDoc(userDocRef, {
+            username: generatedUsername
+          });
+        }
+      } else {
+        // No user doc exists yet — create one with unique username
+        const baseUsername = this.email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+
+        const usersSnap = await getDocs(collection(db, "users"));
+        const existingUsernames = usersSnap.docs.map(doc => doc.data().username).filter(Boolean);
+
+        let generatedUsername = baseUsername;
+        let count = 1;
+        while (existingUsernames.includes(generatedUsername)) {
+          generatedUsername = `${baseUsername}${count++}`;
+        }
+
+        this.username = generatedUsername;
+
+        await setDoc(userDocRef, {
+          uid: this.user.uid,
+          address: "",
+          phone: "",
+          username: generatedUsername,
+          createdAt: new Date()
+        });
       }
     } catch (err) {
-      console.warn("Failed to load user extra fields:", err);
+      console.warn("Failed to load or save user fields:", err);
     }
 
     this.fetchListings();
@@ -289,101 +374,114 @@ async mounted() {
   }
 },
 
+
+
+
 methods: {
-  async updateProfile() {
-    this.submitted = true;
-    this.updatingProfile = true;
+async updateProfile() {
+  this.submitted = true;
+  this.updatingProfile = true;
 
-    const nameValid = /^[A-Za-z]+$/;
-    const phoneValid = /^\+?\d{7,15}$/;
-    const emailValid = /.+@.+\..+/;
+  const nameValid = /^[A-Za-z]+$/;
+  const phoneValid = /^\+?\d{7,15}$/;
+  const emailValid = /.+@.+\..+/;
+  const usernameValid = /^[a-zA-Z0-9_]+$/;
 
-    if (
-      (this.firstName && !nameValid.test(this.firstName)) ||
-      (this.lastName && !nameValid.test(this.lastName)) ||
-      (this.phone && !phoneValid.test(this.phone)) ||
-      (this.email && !emailValid.test(this.email)) ||
-      (this.address && this.address.length < 3)
-    ) {
-      this.updatingProfile = false;
-      return;
+  if (
+    (this.firstName && !nameValid.test(this.firstName)) ||
+    (this.lastName && !nameValid.test(this.lastName)) ||
+    (this.phone && !phoneValid.test(this.phone)) ||
+    (this.email && !emailValid.test(this.email)) ||
+    (this.address && this.address.length < 3) ||
+    (this.username && !usernameValid.test(this.username))
+  ) {
+    this.updatingProfile = false;
+    return;
+  }
+
+  if (!this.isGoogleUser && this.newPassword && this.newPassword.length < 6) {
+    this.updatingProfile = false;
+    return;
+  }
+
+  if (!this.isGoogleUser && this.newPassword && this.newPassword !== this.confirmPassword) {
+    this.updatingProfile = false;
+    return;
+  }
+
+  const auth = getAuth();
+  const user = auth.currentUser;
+  const displayName = `${this.firstName} ${this.lastName}`;
+  const updates = { displayName };
+
+  try {
+    if (!this.isGoogleUser && this.oldPassword && this.newPassword) {
+      const credential = EmailAuthProvider.credential(this.email, this.oldPassword);
+      await reauthenticateWithCredential(user, credential);
+      await updatePassword(user, this.newPassword);
     }
 
-    if (!this.isGoogleUser && this.newPassword && this.newPassword.length < 6) {
-      this.updatingProfile = false;
-      return;
+    if (!this.isGoogleUser && this.email !== user.email) {
+      await updateEmail(user, this.email);
     }
 
-    if (!this.isGoogleUser && this.newPassword && this.newPassword !== this.confirmPassword) {
-      this.updatingProfile = false;
-      return;
-    }
+    if (this.photoFile) {
+      try {
+        const storage = getStorage();
+        const filePath = `profilePictures/${user.uid}_${Date.now()}`;
+        const imageRef = storageRef(storage, filePath);
 
-    const auth = getAuth();
-    const user = auth.currentUser;
-    const displayName = `${this.firstName} ${this.lastName}`;
-    const updates = { displayName };
+        await uploadBytes(imageRef, this.photoFile);
+        const photoURL = await getDownloadURL(imageRef);
 
-    try {
-      if (!this.isGoogleUser && this.oldPassword && this.newPassword) {
-        const credential = EmailAuthProvider.credential(this.email, this.oldPassword);
-        await reauthenticateWithCredential(user, credential);
-        await updatePassword(user, this.newPassword);
-      }
-
-      if (!this.isGoogleUser && this.email !== user.email) {
-        await updateEmail(user, this.email);
-      }
-
-      if (this.photoFile) {
-        const reader = new FileReader();
-        reader.onloadend = async () => {
-          try {
-            updates.photoURL = reader.result;
-            await updateProfile(user, updates);
-            alert("Profile updated!");
-          } catch (err) {
-            console.error("Error updating profile:", err);
-            alert("Failed to update profile.");
-          } finally {
-            this.updatingProfile = false;
-          }
-        };
-        reader.readAsDataURL(this.photoFile);
-        return;
-      } else {
+        updates.photoURL = photoURL;
         await updateProfile(user, updates);
+        this.user.photoURL = photoURL;
+
         alert("Profile updated!");
+      } catch (err) {
+        console.error("Error uploading profile picture:", err);
+        alert("Failed to upload profile picture.");
+      } finally {
+        this.updatingProfile = false;
+      }
+      return;
+    } else {
+      await updateProfile(user, updates);
+      alert("Profile updated!");
+    }
+  } catch (err) {
+    console.error("Error updating profile:", err);
+    alert("Failed to update profile.");
+  } finally {
+    try {
+      const userDocRef = docRef(db, "users", user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+
+      if (userDocSnap.exists()) {
+        await updateDoc(userDocRef, {
+          address: this.address,
+          phone: this.phone,
+          username: this.username
+        });
+      } else {
+        await setDoc(userDocRef, {
+          address: this.address,
+          phone: this.phone,
+          username: this.username,
+          uid: user.uid,
+          createdAt: new Date()
+        });
       }
     } catch (err) {
-      console.error("Error updating profile:", err);
-      alert("Failed to update profile.");
-    } finally {
-      try {
-        const userDocRef = docRef(db, "users", user.uid);
-        const userDocSnap = await getDoc(userDocRef);
-
-        if (userDocSnap.exists()) {
-          await updateDoc(userDocRef, {
-            address: this.address,
-            phone: this.phone
-          });
-        } else {
-          await setDoc(userDocRef, {
-            address: this.address,
-            phone: this.phone,
-            uid: user.uid,
-            createdAt: new Date()
-          });
-        }
-      } catch (err) {
-        console.error("Error writing user info to Firestore:", err);
-        alert("Failed to save address/phone.");
-      }
-
-      this.updatingProfile = false;
+      console.error("Error writing user info to Firestore:", err);
+      alert("Failed to save address/phone/username.");
     }
-  },
+
+    this.updatingProfile = false;
+  }
+},
+
 
   async cancelBooking(bookingId) {
     if (!confirm("Are you sure you want to cancel this booking?")) return;
@@ -400,9 +498,9 @@ methods: {
     this.loadingListings = true;
     try {
       const q = query(
-        collection(db, "listings"),
-        where("ownerId", "==", this.user.uid)
-      );
+  collection(db, "parkingSpots"),
+  where("ownerId", "==", this.user.uid)
+);
       const querySnapshot = await getDocs(q);
       this.listings = querySnapshot.docs.map((doc) => ({
         id: doc.id,
@@ -418,7 +516,7 @@ methods: {
   async deleteListing(listingId) {
     if (!confirm("Are you sure you want to delete this listing?")) return;
     try {
-      await deleteDoc(doc(db, "listings", listingId));
+      await deleteDoc(doc(db, "parkingSpots", listingId));
       this.listings = this.listings.filter(listing => listing.id !== listingId);
     } catch (err) {
       console.error("Error deleting listing:", err);
@@ -426,16 +524,19 @@ methods: {
     }
   },
 
-  openEditModal(listing) {
-    this.editingListing = listing;
-    this.editForm = {
-      address: listing.address || '',
-      price: listing.price || '',
-      startTime: listing.startTime || '',
-      endTime: listing.endTime || '',
-      availableWeekdays: listing.availableWeekdays || []
-    };
-  },
+openEditModal(listing) {
+  this.editingListing = listing;
+  this.editForm = {
+    address: listing.address || '',
+    price: listing.price || '',
+    startTime: listing.startTime || '',
+    endTime: listing.endTime || '',
+    availableWeekdays: Array.isArray(listing.availableWeekdays)
+      ? listing.availableWeekdays
+      : (listing.availableWeekdays || '').split(',').map(day => day.trim())
+  };
+}
+,
 
   cancelEdit() {
     this.editingListing = null;
@@ -474,53 +575,90 @@ methods: {
     }
   },
 
-  async fetchRentalHistory() {
-    if (!this.user) return;
-    this.loadingRentalHistory = true;
-    try {
-      const q = query(
-        collection(db, "rentalHistory"),
-        where("ownerId", "==", this.user.uid)
-      );
-      const snapshot = await getDocs(q);
-      const records = await Promise.all(
-        snapshot.docs.map(async doc => {
-          const data = doc.data();
-          let renterName = "Unknown";
+async fetchRentalHistory() {
+  if (!this.user) return;
+  this.loadingRentalHistory = true;
+
+  try {
+    const q = query(
+      collection(db, "rentalHistory"),
+      where("ownerId", "==", this.user.uid)
+    );
+
+    const snapshot = await getDocs(q);
+
+    const records = await Promise.all(
+      snapshot.docs.map(async (docSnap) => {
+        const data = docSnap.data();
+        let renterName = "Unknown";
+
+        if (data.renterId) {
           try {
-            const userDoc = await getDoc(doc(db, "users", data.renterId));
-            if (userDoc.exists()) {
-              const userInfo = userDoc.data();
-              renterName = userInfo.displayName || userInfo.firstName || userInfo.email || data.renterId;
+            const userDocRef = doc(db, "users", data.renterId);
+            const userSnap = await getDoc(userDocRef);
+
+            if (userSnap.exists()) {
+              const userData = userSnap.data();
+
+              // Logging for debug
+              console.log("Fetched userData for", data.renterId, userData);
+
+              // Prefer username > displayName > firstName > email > UID
+              renterName =
+                userData.username ||
+                userData.displayName ||
+                userData.firstName ||
+                userData.email?.split("@")[0] ||
+                data.renterId;
+            } else {
+              console.warn("No user doc for renterId:", data.renterId);
             }
           } catch (err) {
-            console.warn("Failed to fetch renter info:", err);
+            console.warn("Error fetching user doc for renterId:", data.renterId, err);
           }
-          return {
-            id: doc.id,
-            ...data,
-            renterName
-          };
-        })
-      );
-      this.rentalHistory = records;
-    } catch (err) {
-      console.error("Error fetching rental history:", err);
-    } finally {
-      this.loadingRentalHistory = false;
-    }
-  },
+        }
 
-  onFileChange(e) {
-    if (this.isGoogleUser) return;
-    const file = e.target.files[0];
-    if (file && file.size > 2 * 1024 * 1024) {
-      alert("Image must be smaller than 2MB.");
-      return;
-    }
-    this.photoFile = file;
-    this.previewUrl = URL.createObjectURL(file);
-  },
+        return {
+          id: docSnap.id,
+          ...data,
+          renterName,
+        };
+      })
+    );
+
+    this.rentalHistory = records;
+  } catch (err) {
+    console.error("Error fetching rental history:", err);
+  } finally {
+    this.loadingRentalHistory = false;
+  }
+},
+
+
+
+
+
+onFileChange(e) {
+  if (this.isGoogleUser) return;
+
+  const file = e.target.files[0];
+  if (!file || file.size > 2 * 1024 * 1024) {
+    alert("Image must be under 2MB.");
+    return;
+  }
+
+  this.photoFile = file;
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    this.previewUrl = event.target.result;
+  };
+  reader.readAsDataURL(file);
+},
+
+
+
+
+
 
   mapWeekdays(codes) {
     const dayMap = {
@@ -560,9 +698,58 @@ methods: {
       dateStyle: "short",
       timeStyle: "short"
     }).format(date.toDate ? date.toDate() : date);
+  },
+  
+
+async confirmDeleteAccount() {
+  if (!confirm("Are you sure you want to delete your account? This will remove your profile and all your listings.")) return;
+
+  const auth = getAuth();
+  const user = auth.currentUser;
+
+  try {
+    // === 1. Reauthenticate ===
+    if (user.providerData.some(p => p.providerId === "google.com")) {
+      // Google user
+      const provider = new GoogleAuthProvider();
+      await reauthenticateWithPopup(user, provider);
+    } else {
+      // Email/password user
+      const password = prompt("Please enter your password to confirm account deletion:");
+      if (!password) {
+        alert("Password is required to delete your account.");
+        return;
+      }
+      const credential = EmailAuthProvider.credential(user.email, password);
+      await reauthenticateWithCredential(user, credential);
+    }
+
+    // === 2. Delete all user's listings ===
+    const listingsSnap = await getDocs(query(
+      collection(db, "listings"),
+      where("ownerId", "==", user.uid)
+    ));
+    const listingDeletes = listingsSnap.docs.map(docSnap =>
+      deleteDoc(doc(db, "listings", docSnap.id))
+    );
+    await Promise.all(listingDeletes);
+
+    // === 3. Delete user document ===
+    await deleteDoc(doc(db, "users", user.uid));
+
+    // === 4. Delete Firebase Auth user ===
+    await deleteUser(user);
+
+    alert("Account and all listings have been successfully deleted.");
+    this.$router.push("/");
+  } catch (err) {
+    console.error("Error deleting account:", err);
+    alert("Failed to delete account. Please try again.");
   }
 }
+ }
 }
+
 </script>
 
 
@@ -646,9 +833,11 @@ h1 {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
+/* ✅ Fixed alignment and equal height */
 .profile-content {
   display: flex;
-  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: space-between;
   gap: 50px;
   max-width: 1100px;
   margin: auto;
@@ -663,6 +852,10 @@ h1 {
   flex: 1 1 450px;
   display: flex;
   flex-direction: column;
+}
+
+.form-right {
+  justify-content: space-between;
 }
 
 /* ==== Inputs & Labels ==== */
@@ -871,5 +1064,39 @@ input:focus {
   font-size: 13px;
   margin-top: -5px;
   margin-bottom: 10px;
+}
+
+/* ==== Delete Account Section (Aligned to Bottom) ==== */
+.delete-account-container {
+  margin-top: auto;
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-end;
+}
+
+.delete-warning {
+  font-size: 13px;
+  color: #8b0000;
+  font-style: italic;
+  margin-bottom: 6px;
+  text-align: right;
+  max-width: 250px;
+}
+
+.delete-account-btn {
+  background-color: #d9534f;
+  color: white;
+  padding: 6px 14px;
+  font-size: 13px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.delete-account-btn:hover {
+  background-color: #c9302c;
 }
 </style>

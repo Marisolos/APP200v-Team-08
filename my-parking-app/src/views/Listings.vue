@@ -180,19 +180,22 @@ watch: {
 },
 getAvailableDays(ad) {
   const allDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-
   const value = ad.availableWeekdays;
 
   if (!value || value.length === 0) {
     return allDays;
   }
 
-  // If already an array, return it directly (standard)
+  // If already an array, return it directly
   if (Array.isArray(value)) {
     return value;
   }
 
-  // If it's a string, continue parsing
+  // If it's not a string, return an empty array to avoid crashing
+  if (typeof value !== 'string') {
+    return [];
+  }
+
   const lower = value.toLowerCase();
 
   if (lower.includes("every day")) {
