@@ -254,6 +254,8 @@ console.log("commonListingData som lagres:", commonListingData);
 //Author: Hedvig
 
     alert("Listing published!");
+    form.progressLevel = 5;
+    form.$reset();
     router.push('/listings');
   } catch (err) {
     console.error("Error publishing listing:", err);

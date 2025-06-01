@@ -52,7 +52,7 @@
           maxlength="5"
           />
           <div v-if="errors.height && touched.height" class="error-text">
-            Du må fylle ut høyde hvis du har krysset av for tak.
+            Du må fylle ut høyde siden du har krysset av for tak.
           </div>
         </div>
     </div>
@@ -138,7 +138,7 @@
   
   <script>
   import { useRegisterFormStore } from '@/stores/registerForm'
-import FooterComponent from '@/components/Footer.vue' // Import the Footer component
+  import FooterComponent from '@/components/Footer.vue' // Import the Footer component
 
   export default {
     name: "RegisterParking2",
@@ -228,6 +228,9 @@ import FooterComponent from '@/components/Footer.vue' // Import the Footer compo
     this.form.rules.push(rule);
     console.log(this.form.rules);
 
+    this.errors.selectedDays = false;
+    this.touched.selectedDays = false;
+
     // Reset fields
     this.form.selectedDays = [];
     this.form.repeatPattern = '';
@@ -262,6 +265,7 @@ import FooterComponent from '@/components/Footer.vue' // Import the Footer compo
       this.touched.height = true;
 
       if (!this.errors.length && !this.errors.width && !this.errors.selectedDays && !this.errors.height) {
+        this.form.progressLevel = 3;
         this.$router.push('/register-parking-3');
       }
     }

@@ -10,20 +10,19 @@
 
     <div class="form-section">
       <label>Adresse</label>
-      <span v-if="errors.adresse && touched.adresse" class="error-text">
-        {{ errors.adresseMessage || 'Adresse må fylles ut' }}
-      </span>
       <AddressAutocomplete 
       @blur="touched.adresse = true"
       @focus="errors.adresse = false"
       :errors="errors"
       :touched="touched"
       @postcode-updated="hentPoststed"/>
+      <span v-if="errors.adresse && touched.adresse" class="error-text">
+        {{ errors.adresseMessage || 'Adresse må fylles ut.' }}
+      </span>
     </div>
 
     <div class="form-section">
       <label>Postnummer / Poststed</label>
-      <span v-if="errors.postnummer && touched.postnummer" class="error-text"> // må fylles ut</span>
       <div class="horizontal-group">
         <input
           type="text"
@@ -45,11 +44,11 @@
           class="text-input readonly"
         />
       </div>
+      <span v-if="errors.postnummer && touched.postnummer" class="error-text">Postnummer må fylles ut.</span>
     </div>
 
     <div class="form-section">
       <label>Pris</label>
-      <span v-if="errors.pris && touched.pris" class="error-text"> // må fylles ut</span>
       <div class="price-group">
         <div class="price-wrapper">
           <input type="text" v-model="form.pris" @input="validerPris" @blur="touched.pris = true" @focus="errors.pris = false"
@@ -65,6 +64,7 @@
           <option>per måned</option>
         </select>
       </div>
+      <span v-if="errors.pris && touched.pris" class="error-text">Pris må fylles ut.</span>
     </div>
 
     <div class="form-section" style="position: relative; display: flex; align-items: center; justify-content: flex-end; min-height: 80px;">
@@ -145,7 +145,7 @@ export default {
           this.errors.adresseMessage = 'Ugyldig adresse. Vennligst velg en fra listen.'
           return
         }
-
+        this.form.progressLevel = 2;
         this.$router.push('/register-parking-2')
       }
     },

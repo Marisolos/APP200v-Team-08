@@ -31,6 +31,8 @@ export const useRegisterFormStore = defineStore('registerForm', {
     images: [],
     guidelines: "",
     additionalInfo: "",
-    daysDescription: ""
+    daysDescription: "",
+    progressLevel: 1
   }),
+  persist: true,
 })
