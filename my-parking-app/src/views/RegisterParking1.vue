@@ -75,7 +75,6 @@
       </div>
         <button class="search-button" @click="validateAndGoToNextPage">Neste side →</button>
       </div>
-  <FooterComponent /> <!-- Footer Component -->
   </div>
 </template>
 
@@ -84,12 +83,11 @@ import { useRegisterFormStore } from '@/stores/registerForm'
 import postnummerData from '@/assets/postnummer.json'
 import AddressAutocomplete from '@/components/AddressAutocomplete.vue'
 import { watch } from 'vue'
-import FooterComponent from "@/components/Footer.vue"; // Importer FooterComponent for bruk i denne komponenten
 
 export default {
   name: 'RegisterParking1',
   components:
-  { AddressAutocomplete, FooterComponent }, // Registrer FooterComponent her
+  { AddressAutocomplete},
   data() {
     const form = useRegisterFormStore()
 

@@ -28,19 +28,14 @@
         </div>
       </transition>
     </div>
-  <FooterComponent /> <!-- Footer Component -->
   </div>
 </template>
 
 
 <script>
-import FooterComponent from "@/components/Footer.vue";
 
 export default {
   name: "FAQ",
-      components: {
-    FooterComponent  // <-- Registrer komponenten her
-  },
   data() {
     return {
       activeIndex: null,

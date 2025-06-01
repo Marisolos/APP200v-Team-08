@@ -72,7 +72,6 @@
       </div>
       <button class="search-button" @click="publishListing">Publiser</button>
     </div>
-  <FooterComponent /> <!-- Footer Component -->
   </div>
 </template>
 
@@ -81,7 +80,6 @@ import { useRegisterFormStore } from '@/stores/registerForm';
 import { db } from '@/firebase';
 import { getAuth } from 'firebase/auth';
 import { addDoc, collection, serverTimestamp, getDocs, query, where } from 'firebase/firestore';
-import FooterComponent from "@/components/Footer.vue"; // Import FooterComponent for use in this component
 
 const form = useRegisterFormStore();
 const currentStep = 4;

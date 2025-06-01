@@ -13,7 +13,6 @@
 
     <div v-if="noResults" class="no-results">
     </div>
-  <FooterComponent /> <!-- Footer Component -->
   </div>
 </template>
 
@@ -22,7 +21,6 @@
 import { ref, onMounted, onActivated, onDeactivated } from 'vue'; 
 import { db } from '@/firebase';
 import { collection, getDocs } from 'firebase/firestore'; 
-import FooterComponent from '@/components/Footer.vue'; // Importer FooterComponent for bruk i denne komponenten
 
 const map = ref(null);
 const markers = ref([]);

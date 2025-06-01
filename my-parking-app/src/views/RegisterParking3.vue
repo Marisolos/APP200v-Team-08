@@ -72,14 +72,12 @@
             <button class="search-button">Neste side →</button>
         </router-link>
     </div>
-  <FooterComponent /> <!-- Footer Component -->
 </div>
 </template>
   
   <script setup>
   import { useRegisterFormStore } from '@/stores/registerForm'
   import { ref } from 'vue'
-  import FooterComponent from "@/components/Footer.vue"; // Importer FooterComponent for bruk i denne komponenten
 
   const currentStep = 3;
   const totalSteps = 4;

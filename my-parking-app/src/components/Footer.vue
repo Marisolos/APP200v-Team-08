@@ -22,9 +22,10 @@ export default {
   align-items: center;
   background-color: #5B8D8A;
   color: #ffffff;
-  padding: 15px 30px;
+  padding: 25px 40px;
   font-family: "Nunito Sans", sans-serif;
-  font-size: 16px;
+  font-size: 18px;
+  min-height: 80px;
 }
 
 .footer a {

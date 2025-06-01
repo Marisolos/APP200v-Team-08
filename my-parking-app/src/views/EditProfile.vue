@@ -182,7 +182,6 @@
         </div>
       </div>
     </div>
-    <FooterComponent /> <!-- Footer Component -->
   </div>
 </template>
 
@@ -210,13 +209,10 @@ import {
 } from "firebase/firestore";
 import { db } from "@/firebase";
 import defaultAvatar from "@/assets/default-user.png";
-import FooterComponent from "@/components/Footer.vue"; // Import FooterComponent for use in this component
 
 export default {
   name: "EditProfile",
-    components: {
-    FooterComponent  // <-- Registrer komponenten her
-  },
+
   data() {
     return {
       user: null,

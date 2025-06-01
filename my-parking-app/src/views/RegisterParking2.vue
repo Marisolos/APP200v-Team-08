@@ -94,20 +94,15 @@
         <button class="search-button">Neste side →</button>
       </router-link>
     </div>
-  <FooterComponent /> <!-- Footer Component -->
 </div>
   </template>
   
   
   <script>
   import { useRegisterFormStore } from '@/stores/registerForm'
-import FooterComponent from '@/components/Footer.vue' // Import the Footer component
 
   export default {
     name: "RegisterParking2",
-    components: {
-      FooterComponent // Register the Footer component
-    },
     data(){
         return {
       currentStep: 2,

@@ -105,20 +105,15 @@
     </div>
     </div>
   </section>
-  <FooterComponent /> <!-- Footer Component -->
 </template>
 
 <script>
 import { collection, getDocs, addDoc, query, where, serverTimestamp } from "firebase/firestore";
 import { db } from "@/firebase";
 import { getAuth } from "firebase/auth";
-import FooterComponent from '@/components/Footer.vue'; // Import FooterComponent for use in this component
 
 export default {
   name: "ListingsPage",
-    components: {
-    FooterComponent  // <-- Registrer komponenten her
-  },
   data() {
     return {
       allAds: [],

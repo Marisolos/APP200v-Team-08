@@ -27,6 +27,7 @@
 
     <div class="navbar-spacer" v-if="showNavbarFixed"></div>
     <router-view />
+  <FooterComponent v-if="showFooter" /> <!-- Show Footer component -->
   </div>
 </template>
 
@@ -34,9 +35,14 @@
 import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 import router from './router';
 import defaultAvatar from "@/assets/default-user.png";
+import FooterComponent from "@/components/Footer.vue"; // Import Footer component
+
 
 export default {
   name: "App",
+    components: {
+    FooterComponent, // Register Footer component
+  },
   data() {
     return {
       user: null,
@@ -47,6 +53,11 @@ export default {
       scrollUpDistance: 0
     };
   },
+  computed: {
+  showFooter() {
+    return this.$route.path !== '/login';
+  }
+}
 created() {
   const auth = getAuth();
   onAuthStateChanged(auth, (user) => {
