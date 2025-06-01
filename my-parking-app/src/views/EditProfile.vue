@@ -120,63 +120,106 @@
       </div>
     </div>
 
-    <!-- === HISTORY TAB === -->
-    <div v-if="currentTab === 'history'" class="secondary-tab">
-      <h2>Parking History</h2>
-      <div v-if="loadingHistory">Loading your parking history...</div>
-      <div v-else-if="parkingHistory.length === 0">You haven’t booked any spots yet.</div>
-      <div v-else>
-        <div v-for="booking in parkingHistory" :key="booking.id" class="listing-card">
-<div v-for="booking in parkingHistory" :key="booking.id" class="listing-card">
-  <p><strong>Address:</strong> {{ booking.address }}</p>
-  <p><strong>Booked:</strong> {{ formatDate(booking.createdAt?.toDate?.()) }}</p>
-  <p><strong>Time:</strong> {{ booking.startTime }}–{{ booking.endTime }} on {{ booking.day }}</p>
+<!-- === HISTORY TAB === -->
+<div v-if="currentTab === 'history'" class="secondary-tab">
+  <h2>Parking History</h2>
+  <div v-if="loadingHistory">Loading your parking history...</div>
+  <div v-else-if="parkingHistory.length === 0">You haven’t booked any spots yet.</div>
+  <div v-else>
 
-  <!-- Canceled message -->
-<p v-if="booking.canceledAt" style="color: crimson; font-style: italic;">
-  This parking was canceled on {{ formatDate(parseDate(booking.canceledAt)) }}
-</p>
+    <div class="accordion-section">
+      <!-- ✅ Corrected "Current Bookings" block -->
+      <button class="accordion-toggle" @click="showCurrent = !showCurrent">
+        <span>Current Bookings ({{ currentBookings.length }})</span>
+        <span>{{ showCurrent ? '▲' : '▼' }}</span>
+      </button>
+      <div v-show="showCurrent" class="accordion-content">
+        <div
+          v-for="booking in currentBookings"
+          :key="booking.id"
+          class="accordion-card"
+        >
+          <p><strong>Address:</strong> {{ booking.address }}</p>
+          <p><strong>Booked:</strong> {{ formatDate(booking.createdAt?.toDate?.()) }}</p>
+          <p><strong>Time:</strong> {{ booking.startTime }}–{{ booking.endTime }} on {{ booking.day }}</p>
+          <button class="cancel-btn" @click="cancelBooking(booking.id)">Cancel</button>
+        </div>
+      </div>
 
-
-  <!-- Cancel button, only if not canceled -->
-  <button
-    class="cancel-btn"
-    @click="cancelBooking(booking.id)"
-    v-if="!booking.canceledAt"
-  >
-    Cancel
-  </button>
-
-  <!-- Greyed out button for canceled bookings -->
-  <button
-    class="cancel-btn"
-    disabled
-    v-else
-    style="background-color: #ccc; cursor: not-allowed;"
-  >
-    Canceled
-  </button>
+      <!-- ✅ Canceled stays collapsed by default -->
+      <button class="accordion-toggle" @click="showCanceled = !showCanceled">
+        <span>Canceled Bookings ({{ canceledBookings.length }})</span>
+        <span>{{ showCanceled ? '▲' : '▼' }}</span>
+      </button>
+      <div v-show="showCanceled" class="accordion-content">
+        <div
+          v-for="booking in canceledBookings"
+          :key="booking.id"
+          class="accordion-card"
+        >
+          <p><strong>Address:</strong> {{ booking.address }}</p>
+          <p><strong>Booked:</strong> {{ formatDate(booking.createdAt?.toDate?.()) }}</p>
+          <p><strong>Time:</strong> {{ booking.startTime }}–{{ booking.endTime }} on {{ booking.day }}</p>
+          <p style="color: crimson; font-style: italic;">
+            This parking was canceled on {{ formatDate(parseDate(booking.canceledAt)) }}
+          </p>
+          <button
+            class="cancel-btn"
+            disabled
+            style="background-color: #ccc; cursor: not-allowed;"
+          >
+            Canceled
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 
-        </div>
+<!-- === RENTAL HISTORY TAB === -->
+<div v-if="currentTab === 'rentalHistory'" class="secondary-tab">
+  <h2>Rental History</h2>
+  <div v-if="loadingRentalHistory">Loading rental history...</div>
+  <div v-else-if="rentalHistory.length === 0">No rentals yet.</div>
+  <div v-else class="accordion-section">
+
+    <!-- Currently Rented -->
+    <button class="accordion-toggle" @click="showCurrentRentals = !showCurrentRentals">
+      <span>Currently Rented ({{ currentRentals.length }})</span>
+      <span>{{ showCurrentRentals ? '▲' : '▼' }}</span>
+    </button>
+    <div v-show="showCurrentRentals" class="accordion-content">
+      <div v-for="rental in currentRentals" :key="rental.id" class="accordion-card">
+        <p><strong>Rented to:</strong> {{ rental.renterName || rental.renterId }}</p>
+        <p><strong>Address:</strong> {{ rental.address }}</p>
+        <p><strong>Booked:</strong> {{ formatDate(rental.timestamp) }}</p>
+        <p><strong>Time:</strong> {{ rental.startTime }}–{{ rental.endTime }} on {{ rental.day }}</p>
+
+         <button class="cancel-btn" @click="cancelRental(rental.id)">Cancel Rental</button>
       </div>
     </div>
 
-    <!-- === RENTAL HISTORY TAB === -->
-    <div v-if="currentTab === 'rentalHistory'" class="secondary-tab">
-      <h2>Rental History</h2>
-      <div v-if="loadingRentalHistory">Loading rental history...</div>
-      <div v-else-if="rentalHistory.length === 0">No rentals yet.</div>
-      <div v-else>
-        <div v-for="rental in rentalHistory" :key="rental.id" class="listing-card">
-          <p><strong>Rented to:</strong> {{ rental.renterName || rental.renterId }}</p>
-          <p><strong>Address:</strong> {{ rental.address }}</p>
-          <p><strong>Booked:</strong> {{ formatDate(rental.timestamp) }}</p>
-          <p><strong>Time:</strong> {{ rental.startTime }}–{{ rental.endTime }} on {{ rental.day }}</p>
-        </div>
+    <!-- Canceled Rentals -->
+    <button class="accordion-toggle" @click="showCanceledRentals = !showCanceledRentals">
+      <span>Canceled Rentals ({{ canceledRentals.length }})</span>
+      <span>{{ showCanceledRentals ? '▲' : '▼' }}</span>
+    </button>
+    <div v-show="showCanceledRentals" class="accordion-content">
+      <div v-for="rental in canceledRentals" :key="rental.id" class="accordion-card">
+        <p><strong>Rented to:</strong> {{ rental.renterName || rental.renterId }}</p>
+        <p><strong>Address:</strong> {{ rental.address }}</p>
+        <p><strong>Booked:</strong> {{ formatDate(rental.timestamp) }}</p>
+        <p><strong>Time:</strong> {{ rental.startTime }}–{{ rental.endTime }} on {{ rental.day }}</p>
+        <p style="color: crimson; font-style: italic;">
+          This rental was canceled on {{ formatDate(parseDate(rental.canceledAt)) }}
+        </p>
       </div>
     </div>
+
+  </div>
+</div>
+
 
     <!-- === LISTINGS TAB === -->
     <div v-if="currentTab === 'listings'" class="secondary-tab">
@@ -298,6 +341,8 @@ export default {
       updatingProfile: false,
       loadingRentalHistory: false,
 
+
+
       listings: [],
       loadingListings: false,
       editingListing: null,
@@ -310,94 +355,107 @@ export default {
         { label: "Sat", value: "Sa" },
         { label: "Sun", value: "Su" }
       ],
-    editForm: {
-      address: '',
-      price: '',
-      startTime: '',
-      endTime: '',
-      availableWeekdays: [],
-    },
+      editForm: {
+        address: '',
+        price: '',
+        startTime: '',
+        endTime: '',
+        availableWeekdays: [],
+      },
 
       rentalHistory: [],
       parkingHistory: [],
-      loadingHistory: false
+      loadingHistory: false,
+
+      // Toggles for booking sections
+      showCurrent: true,
+      showCanceled: false,
+      showCompleted: false,
+      showCurrentRentals: true,
+      showCanceledRentals: false
+
     };
   },
-  
-async mounted() {
-  const auth = getAuth();
-  this.user = auth.currentUser;
 
-  if (this.user) {
-    const providerData = this.user.providerData[0];
-    this.isGoogleUser = providerData.providerId === "google.com";
+computed: {
+  currentBookings() {
+    return this.parkingHistory.filter(b => !b.canceledAt);
+  },
+  canceledBookings() {
+    return this.parkingHistory.filter(b => b.canceledAt);
+  },
+  currentRentals() {
+    return this.rentalHistory.filter(r => !r.canceledAt);
+  },
+  canceledRentals() {
+    return this.rentalHistory.filter(r => r.canceledAt);
+  }
+},
 
-    this.firstName = this.user.displayName?.split(" ")[0] || "";
-    this.lastName = this.user.displayName?.split(" ")[1] || "";
-    this.email = this.user.email || "";
 
-    try {
-      const userDocRef = docRef(db, "users", this.user.uid);
-      const userDocSnap = await getDoc(userDocRef);
+  async mounted() {
+    const auth = getAuth();
+    this.user = auth.currentUser;
 
-      if (userDocSnap.exists()) {
-        const userData = userDocSnap.data();
-        this.address = userData.address || "";
-        this.phone = userData.phone || "";
+    if (this.user) {
+      const providerData = this.user.providerData[0];
+      this.isGoogleUser = providerData.providerId === "google.com";
 
-        // ✅ Only generate username if missing
-        if (userData.username) {
-          this.username = userData.username;
-        } else if (this.email) {
+      this.firstName = this.user.displayName?.split(" ")[0] || "";
+      this.lastName = this.user.displayName?.split(" ")[1] || "";
+      this.email = this.user.email || "";
+
+      try {
+        const userDocRef = docRef(db, "users", this.user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+
+        if (userDocSnap.exists()) {
+          const userData = userDocSnap.data();
+          this.address = userData.address || "";
+          this.phone = userData.phone || "";
+
+          if (userData.username) {
+            this.username = userData.username;
+          } else if (this.email) {
+            const baseUsername = this.email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+            const usersSnap = await getDocs(collection(db, "users"));
+            const existingUsernames = usersSnap.docs.map(doc => doc.data().username).filter(Boolean);
+            let generatedUsername = baseUsername;
+            let count = 1;
+            while (existingUsernames.includes(generatedUsername)) {
+              generatedUsername = `${baseUsername}${count++}`;
+            }
+            this.username = generatedUsername;
+            await updateDoc(userDocRef, { username: generatedUsername });
+          }
+        } else {
           const baseUsername = this.email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
-
           const usersSnap = await getDocs(collection(db, "users"));
           const existingUsernames = usersSnap.docs.map(doc => doc.data().username).filter(Boolean);
-
           let generatedUsername = baseUsername;
           let count = 1;
           while (existingUsernames.includes(generatedUsername)) {
             generatedUsername = `${baseUsername}${count++}`;
           }
-
           this.username = generatedUsername;
-
-          await updateDoc(userDocRef, {
-            username: generatedUsername
+          await setDoc(userDocRef, {
+            uid: this.user.uid,
+            address: "",
+            phone: "",
+            username: generatedUsername,
+            createdAt: new Date()
           });
         }
-      } else {
-        // No user doc exists yet — create one with unique username
-        const baseUsername = this.email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
-
-        const usersSnap = await getDocs(collection(db, "users"));
-        const existingUsernames = usersSnap.docs.map(doc => doc.data().username).filter(Boolean);
-
-        let generatedUsername = baseUsername;
-        let count = 1;
-        while (existingUsernames.includes(generatedUsername)) {
-          generatedUsername = `${baseUsername}${count++}`;
-        }
-
-        this.username = generatedUsername;
-
-        await setDoc(userDocRef, {
-          uid: this.user.uid,
-          address: "",
-          phone: "",
-          username: generatedUsername,
-          createdAt: new Date()
-        });
+      } catch (err) {
+        console.warn("Failed to load or save user fields:", err);
       }
-    } catch (err) {
-      console.warn("Failed to load or save user fields:", err);
-    }
 
-    this.fetchListings();
-    this.fetchParkingHistory();
-    this.fetchRentalHistory();
-  }
-},
+      this.fetchListings();
+      this.fetchParkingHistory();
+      this.fetchRentalHistory();
+    }
+  },
+
 
 
 
@@ -509,19 +567,19 @@ async updateProfile() {
 
 async cancelBooking(bookingId) {
   if (!confirm("Are you sure you want to cancel this booking?")) return;
+
   try {
     const cancelTime = new Date();
 
-    // Mark the booking as canceled by updating the document
+ 
     await updateDoc(doc(db, "bookings", bookingId), {
       canceledAt: cancelTime
     });
 
-    // Reflect the update in the local state so the UI updates immediately
-    const booking = this.parkingHistory.find(b => b.id === bookingId);
-    if (booking) {
-      booking.canceledAt = cancelTime;
-    }
+   
+    this.parkingHistory = this.parkingHistory.map(b =>
+      b.id === bookingId ? { ...b, canceledAt: cancelTime } : b
+    );
 
     alert("Booking canceled and marked in your history.");
   } catch (err) {
@@ -529,6 +587,31 @@ async cancelBooking(bookingId) {
     alert("Failed to cancel the booking. Please try again.");
   }
 },
+
+async cancelRental(rentalId) {
+  if (!confirm("Are you sure you want to cancel this rental?")) return;
+
+  try {
+    const cancelTime = new Date();
+
+    // Update Firestore
+    await updateDoc(doc(db, "rentalHistory", rentalId), {
+      canceledAt: cancelTime,
+    });
+
+    // Update local state
+    const rental = this.rentalHistory.find(r => r.id === rentalId);
+    if (rental) {
+      rental.canceledAt = cancelTime;
+    }
+
+    alert("Rental canceled.");
+  } catch (err) {
+    console.error("Error canceling rental:", err);
+    alert("Failed to cancel rental. Please try again.");
+  }
+},
+
 
 parseDate(date) {
   if (!date) return null;
@@ -598,25 +681,50 @@ openEditModal(listing) {
     }
   },
 
-  async fetchParkingHistory() {
-    if (!this.user) return;
-    this.loadingHistory = true;
-    try {
-      const q = query(
-        collection(db, "bookings"),
-        where("renterId", "==", this.user.uid)
-      );
-      const snapshot = await getDocs(q);
-      this.parkingHistory = snapshot.docs.map(doc => ({
+ async fetchParkingHistory() {
+  if (!this.user) return;
+  this.loadingHistory = true;
+
+  try {
+    const q = query(
+      collection(db, "bookings"),
+      where("renterId", "==", this.user.uid)
+    );
+
+    const snapshot = await getDocs(q);
+
+    this.parkingHistory = snapshot.docs
+      .map(doc => ({
         id: doc.id,
         ...doc.data()
-      }));
-    } catch (err) {
-      console.error("Error fetching parking history:", err);
-    } finally {
-      this.loadingHistory = false;
-    }
-  },
+      }))
+      .sort((a, b) => {
+        const dateA = a.createdAt?.toDate?.() || new Date(0);
+        const dateB = b.createdAt?.toDate?.() || new Date(0);
+        return dateB - dateA; // Sort descending: newest first
+      });
+  } catch (err) {
+    console.error("Error fetching parking history:", err);
+  } finally {
+    this.loadingHistory = false;
+  }
+},
+
+parseDateTime(booking) {
+  try {
+    const baseDate = booking.createdAt?.toDate?.() || new Date();
+    const [hours, minutes] = booking.endTime.split(":").map(Number);
+
+    const result = new Date(baseDate);
+    result.setHours(hours, minutes, 0, 0);
+
+    return result;
+  } catch (e) {
+    return new Date(0); // fallback if something fails
+  }
+},
+
+
 
 async fetchRentalHistory() {
   if (!this.user) return;
@@ -1142,4 +1250,41 @@ input:focus {
 .delete-account-btn:hover {
   background-color: #c9302c;
 }
+
+.accordion-toggle {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: white;
+  border: 1px solid #d0e3cf;
+  padding: 15px 20px;
+  margin-top: 15px;
+  font-weight: bold;
+  font-size: 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  transition: background 0.3s ease;
+}
+
+.accordion-toggle:hover {
+  background: #f7f7f7;
+}
+
+.accordion-content {
+  margin-top: 10px;
+  padding-left: 5px;
+}
+
+.accordion-card {
+  background: #f9f9f9;
+  border: 1px solid #d0e3cf;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 10px;
+  text-align: left;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
 </style>
