@@ -59,9 +59,9 @@ export default {
   },
   computed: {
   showFooter() {
-    return this.$route.path !== '/login';
+    return this.$route.path !== '/login'; // Hide footer on login page
   }
-}
+},
 created() {
   const auth = getAuth();
   onAuthStateChanged(auth, (user) => {
