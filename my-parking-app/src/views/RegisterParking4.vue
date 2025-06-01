@@ -1,10 +1,10 @@
 <template>
   <div class="register-container">
-    <h2 class="page-title">Preview</h2>
+    <h2 class="page-title">{{ $t('register.preview.title') }}</h2>
 
     <!-- Bilder -->
     <div class="form-section">
-      <h3>Overview</h3>
+      <h3>{{ $t('register.preview.overview') }}</h3>
       <div v-if="form.images && form.images.length" class="image-preview-container">
         <div v-for="(image, index) in form.images" :key="index" :class="['image-preview', { 'large': index === 0 }]">
           <img :src="getImageUrl(image)" :alt="'Bilde ' + (index + 1)" />
@@ -12,18 +12,18 @@
       </div>
       <br>
       <h3></h3>
-      <p><strong>Address:</strong> {{ form.adresse }} {{ form.postnummer }} {{ form.poststed }}</p>
-      <p><strong>Price:</strong> {{ form.pris }} kr {{ form.betalingsperiode }}</p>
+      <p><strong>{{ $t('register.preview.address') }}</strong> {{ form.adresse }} {{ form.postnummer }} {{ form.poststed }}</p>
+      <p><strong>{{ $t('register.preview.price') }}</strong> {{ form.pris }} kr {{ form.betalingsperiode }}</p>
     </div>
 
     <!-- Tilgjengelighet -->
     <div class="form-section">
-      <h3>Available</h3>
-      <p><strong>Weekdays:</strong> {{ form.daysDescription }}</p>
-      <p><strong>Time:</strong> {{ form.startTime }} - {{ form.endTime }}</p>
-      <p><strong>Repeats:</strong> {{ form.repeatPattern }}</p>
+      <h3>{{ $t('register.preview.available') }}</h3>
+      <p><strong>{{ $t('register.preview.weekdays') }}</strong> {{ form.daysDescription }}</p>
+      <p><strong>{{ $t('register.preview.time') }}</strong> {{ form.startTime }} - {{ form.endTime }}</p>
+      <p><strong>{{ $t('register.preview.repeats') }}</strong> {{ form.repeatPattern }}</p>
       <div v-if="form.rules.length">
-        <h4>Availability:</h4>
+        <h4>{{ $t('register.preview.availability') }}</h4>
         <ul>
           <li v-for="(rule, index) in form.rules" :key="index">{{ rule }}</li>
         </ul>
@@ -32,7 +32,7 @@
 
     <!-- Funksjoner og dimensjoner -->
     <div class="form-section">
-      <h3>Features</h3>
+      <h3>{{ $t('register.preview.features') }}</h3>
       <ul>
         <li v-if="form.hasCamera">Kameraovervåking</li>
         <li v-if="form.hasCharger">Elbillader</li>
@@ -40,40 +40,40 @@
         <li v-if="form.roofChecked">Tak over</li>
       </ul>
 
-      <h3>Dimensions</h3>
-      <p><strong>Length:</strong> {{ form.length }} m</p>
-      <p><strong>Width:</strong> {{ form.width }} m</p>
-      <p v-if="form.roofChecked"><strong>Høyde:</strong> {{ form.height }} m</p>
+      <h3>{{ $t('register.preview.dimensions') }}</h3>
+      <p><strong>{{ $t('register.preview.length') }}</strong> {{ form.length }} m</p>
+      <p><strong>{{ $t('register.preview.width') }}</strong> {{ form.width }} m</p>
+      <p v-if="form.roofChecked"><strong>{{ $t('register.preview.height') }}</strong> {{ form.height }} m</p>
     </div>
 
     <!-- Tilgang og regler -->
     <div class="form-section">
-      <h3>Access</h3>
+      <h3>{{ $t('register.preview.access') }}</h3>
       <p>{{ form.accessType }}</p>
     </div>
 
     <div class="form-section" v-if="form.guidelines">
-      <h3>Retningslinjer</h3>
+      <h3>{{ $t('register.preview.guidelines') }}</h3>
       <p>{{ form.guidelines }}</p>
     </div>
 
     <div class="form-section" v-if="form.additionalInfo">
-      <h3>Ekstra informasjon</h3>
+      <h3>{{ $t('register.preview.additionalInfo') }}</h3>
       <p>{{ form.additionalInfo }}</p>
     </div>
 
     <!-- Progress and Publiser Button -->
     <div class="form-section nav-footer">
   <router-link to="/register-parking-3">
-    <button class="search-button" style="padding: 10px 31px;">← Tilbake</button>
+    <button class="search-button" style="padding: 10px 31px;">{{ $t('register.back') }}</button>
   </router-link>
   <div class="progress-container">
     <div class="progress-bar">
       <div class="progress-fill" :style="{ width: `${(currentStep / totalSteps) * 100}%` }"></div>
     </div>
-    <span class="progress-text">Side {{ currentStep }} av {{ totalSteps }}</span>
+    <span class="progress-text">{{ $t('register.page', { current: currentStep, total: totalSteps }) }}</span>
   </div>
-    <button class="search-button" style="padding: 10px 39px;" @click="publishListing">Publiser</button>
+    <button class="search-button" style="padding: 10px 39px;" @click="publishListing">{{ $t('register.publish') }}</button>
 </div>
   <FooterComponent /> <!-- Footer Component -->
   </div>

@@ -10,6 +10,7 @@ import App from "./App.vue";
 import router from "./router";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import VueGoogleMaps from "@fawmi/vue-google-maps";
+import i18n from './i18n';
 
 
 import "@/assets/styles.css";
@@ -25,6 +26,7 @@ onAuthStateChanged(auth, () => {
     const pinia = createPinia();
     pinia.use(piniaPluginPersistedstate); //Enable persistedState
     app.use(pinia);
+    app.use(i18n);
     app.use(router);
     app.use(VueGoogleMaps, {
       load: {

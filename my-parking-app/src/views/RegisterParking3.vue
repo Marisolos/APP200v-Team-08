@@ -1,11 +1,11 @@
 <template>
     <div class="register-container">
-      <h2 class="page-title">Registrer parkeringsplass</h2>
+      <h2 class="page-title">{{ $t('register.title') }}</h2>
   
       <!-- Bildeopplasting -->
       <div class="form-section">
-        <h3>Pictures</h3>
-        <label>Upload some pictures of the parking spot</label>
+        <h3>{{ $t('register.images.title') }}</h3>
+        <label>{{ $t('register.images.description') }}</label>
         <div class="upload-container" :class="{ 'dragging': isDraggingOver }" @dragover.prevent="handleDragOver" @dragleave="isDraggingOver = false" @drop="handleDrop">
           <input
             type="file"
@@ -16,12 +16,12 @@
             style="display: none"
           />
             <button class="upload-button" @click="triggerFileInput" :disabled="form.images.length >= 4">
-                Velg bilder (maks 4)
+                {{ $t('register.images.button') }}
             </button>
-          <p v-if="form.images.length >= 4">Maksimalt 4 bilder tillatt.</p>
+          <p v-if="form.images.length >= 4">{{ $t('register.images.tooMany') }}</p>
         </div>
         <p v-if="errors.images && touched.images" style="color: red; margin-top: 8px;">
-          Du må legge til minst ett bilde av parkeringsplassen.
+          {{ $t('register.images.validation') }}
         </p>
         <div class="image-preview-container">
           <div
@@ -41,48 +41,48 @@
   
       <!-- Retningslinjer -->
       <div class="form-section">
-        <h3 for="guidelines">Rules</h3>
-        <label>Let your guests know which rules they have to follow</label>
+        <h3 for="guidelines">{{ $t('register.rules.title') }}</h3>
+        <label>{{ $t('register.rules.description') }}</label>
         <textarea
           id="guidelines"
           v-model="form.guidelines"
           maxlength="500"
-          placeholder="Skriv inn retningslinjer her..."
+          :placeholder="$t('register.guidelines.placeholder')"
         ></textarea>
-        <p>{{ form.guidelines.length }}/500 tegn brukt</p>
+        <p>{{ $t('register.guidelines.count', { count: form.guidelines.length }) }}</p>
       </div>
   
       <!-- Ekstra informasjon -->
       <div class="form-section">
-        <h3 for="additionalInfo">Additional info</h3>
-        <label>Is there anything else you'd like to tell your guests?</label>
+        <h3 for="additionalInfo">{{ $t('register.additionalInfo.title') }}</h3>
+        <label>{{ $t('register.additionalInfo.description') }}</label>
         <textarea
           id="additionalInfo"
           v-model="form.additionalInfo"
           maxlength="500"
-          placeholder="Skriv inn ekstra informasjon her..."
+          :placeholder="$t('register.additionalInfo.placeholder')"
         ></textarea>
-        <p>{{ form.additionalInfo.length }}/500 tegn brukt</p>
+        <p>{{ $t('register.additionalInfo.count', { count: form.additionalInfo.length }) }}</p>
       </div>
 
     <div v-if="showConfirmCheckbox" :class="['form-section', { 'warning-box': !confirmEmptyTextAccepted }]">
       <label :style="{ color: !confirmEmptyTextAccepted ? 'red' : '#333' }">
         <input type="checkbox" v-model="confirmEmptyTextAccepted" />
-        Rules eller Additional info har ikke noe tekst. Fortsett uansett?
+        {{ $t('register.rulesAndAdditionalInfo.confirmation') }}
       </label>
     </div>
   
       <div class="form-section nav-footer">
   <router-link to="/register-parking-2">
-    <button class="search-button" style="padding: 10px 31px;">← Tilbake</button>
+    <button class="search-button" style="padding: 10px 31px;">{{ $t('register.back') }}</button>
   </router-link>
   <div class="progress-container">
     <div class="progress-bar">
       <div class="progress-fill" :style="{ width: `${(currentStep / totalSteps) * 100}%` }"></div>
     </div>
-    <span class="progress-text">Side {{ currentStep }} av {{ totalSteps }}</span>
+    <span class="progress-text">{{ $t('register.page', { current: currentStep, total: totalSteps }) }}</span>
   </div>
-  <button class="search-button" @click="validateAndGoToNextPage">Neste side →</button>
+  <button class="search-button" @click="validateAndGoToNextPage">{{ $t('register.next') }}</button>
 </div>
   <FooterComponent /> <!-- Footer Component -->
 </div>

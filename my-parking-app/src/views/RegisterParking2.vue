@@ -1,28 +1,27 @@
 <template>
     <div class="register-container">
-      <h2 class="page-title">Registrer parkeringsplass</h2>
+      <h2 class="page-title">{{ $t('register.title') }}</h2>
   
       <div class="form-section">
-        <h3>Features</h3>
-        <label>Select the relevant features for your parking spot.</label><br><br>
+        <h3>{{ $t('register.features.title') }}</h3>
+        <label>{{ $t('register.features.description') }}</label><br><br>
         <div>
-          <label><input class="features" type="checkbox" v-model="form.hasCamera"> Video surveillance</label><br>
-          <label><input class="features" type="checkbox" v-model="form.hasCharger"> EV charging</label><br>
-          <label><input class="features" type="checkbox" v-model="form.hasHeating"> Heating</label><br>
-          <label><input class="features" type="checkbox" v-model="form.roofChecked"> Roof</label>
+          <label><input class="features" type="checkbox" v-model="form.hasCamera"> {{ $t('register.features.camera') }}</label><br>
+          <label><input class="features" type="checkbox" v-model="form.hasCharger"> {{ $t('register.features.charger') }}</label><br>
+          <label><input class="features" type="checkbox" v-model="form.hasHeating"> {{ $t('register.features.heating') }}</label><br>
+          <label><input class="features" type="checkbox" v-model="form.roofChecked"> {{ $t('register.features.roof') }}</label>
         </div>
       </div>
   
       <div class="form-section">
-        <h3>Dimensions</h3>
-        <label>Let your guests know how much space you have to offer.</label>
+        <h3>{{ $t('register.dimensions.title') }}</h3>
+        <label>{{ $t('register.dimensions.description') }}</label>
         <div class="form-section">
 
-          <label>Length (m)</label><br>
+          <label>{{ $t('register.dimensions.length') }}</label><br>
           <input type="text" class="text-input"
           :class="{ 'input-error': errors.length && touched.length }"
           required
-          placeholder="Length"
           v-model="form.length"
           @input="validateMeasurement('length')"
           @blur="touched.length = true"
@@ -30,10 +29,9 @@
           maxlength="5"
           />
 
-          <label>Width (m)</label><br>
+          <label>{{ $t('register.dimensions.width') }}</label><br>
           <input type="text" class="text-input"
           :class="{ 'input-error': errors.width && touched.width }"
-          placeholder="Width"
           v-model="form.width"
           @input="validateMeasurement('width')"
           @blur="touched.width = true"
@@ -41,10 +39,9 @@
           maxlength="5"
           />
 
-        <label>Height (m)</label><br>
+        <label>{{ $t('register.dimensions.height') }}</label><br>
         <input type="text" class="text-input"
           :class="{ 'input-error': errors.height && touched.height }"
-          placeholder="Height"
           v-model="form.height"
           @input="validateMeasurement('height')"
           @blur="touched.height = true"
@@ -52,51 +49,51 @@
           maxlength="5"
           />
           <div v-if="errors.height && touched.height" class="error-text">
-            Du må fylle ut høyde siden du har krysset av for tak.
+            {{ $t('register.dimensions.height.error') }}
           </div>
         </div>
     </div>
 
       <div class="form-section">
-        <h3>Access type</h3>
+        <h3>{{ $t('register.access.title') }}</h3>
         <div style="margin-bottom: 16px;">
-          <label>Choose which way best describes how you access the parking spot.</label><br>
+          <label>{{ $t('register.access.description') }}</label><br>
           <select class="text-input" v-model="form.accessType">
-            <option>Open access</option>
-            <option>Key</option>
-            <option>Code</option>
+            <option>{{ $t('register.access.open') }}</option>
+            <option>{{ $t('register.access.key') }}</option>
+            <option>{{ $t('register.access.code') }}</option>
           </select>
         </div>
     </div>
   
     <div class="form-section">
-  <h3>Availability</h3>
-  <p>Select available days and repeat the pattern.<br>You can add up to 4 sets of Availability patterns:</p>
+  <h3>{{ $t('register.availability.title') }}</h3>
+  <p>{{ $t('register.availability.description') }}<br>{{ $t('register.availability.description2') }}</p>
   <div class="horizontal-group" style="flex-wrap: wrap;">
-    <label><input type="checkbox" value="Monday" v-model="form.selectedDays"> Monday</label>
-    <label><input type="checkbox" value="Tuesday" v-model="form.selectedDays"> Tuesday</label>
-    <label><input type="checkbox" value="Wednesday" v-model="form.selectedDays"> Wednesday</label>
-    <label><input type="checkbox" value="Thursday" v-model="form.selectedDays"> Thursday</label>
-    <label><input type="checkbox" value="Friday" v-model="form.selectedDays"> Friday</label>
-    <label><input type="checkbox" value="Saturday" v-model="form.selectedDays"> Saturday</label>
-    <label><input type="checkbox" value="Sunday" v-model="form.selectedDays"> Sunday</label>
-    <div v-if="errors.selectedDays && touched.selectedDays" class="error-text">
-        Du må legge til minst en utleiesekvens.
+    <label><input type="checkbox" value="monday" v-model="form.selectedDays"> {{ $t('monday') }}</label>
+    <label><input type="checkbox" value="tuesday" v-model="form.selectedDays"> {{ $t('tuesday') }}</label>
+    <label><input type="checkbox" value="wednesday" v-model="form.selectedDays"> {{ $t('wednesday') }}</label>
+    <label><input type="checkbox" value="thursday" v-model="form.selectedDays"> {{ $t('thursday') }}</label>
+    <label><input type="checkbox" value="friday" v-model="form.selectedDays"> {{ $t('friday') }}</label>
+    <label><input type="checkbox" value="saturday" v-model="form.selectedDays"> {{ $t('saturday') }}</label>
+    <label><input type="checkbox" value="sunday" v-model="form.selectedDays"> {{ $t('sunday') }}</label>
+      <div v-if="errors.selectedDays && touched.selectedDays" class="error-text">
+        {{ $t('register.availability.error') }}
       </div>
   </div>
 
   <div style="margin-top: 16px;">
-    <label>Repeat pattern</label><br>
+    <label>{{ $t('register.availability.repeat') }}</label><br>
     <select class="text-input" v-model="form.repeatPattern">
-      <option value="Every week">Every week</option>
-      <option value="Every other week">Every other week</option>
-      <option value="First week of the month">First week of the month</option>
-      <option value="Last week of the month">Last week of the month</option>
+      <option value="everyWeek">{{ $t('register.availability.everyWeek') }}</option>
+      <option value="everyOtherWeek">{{ $t('register.availability.everyOtherWeek') }}</option>
+      <option value="firstWeekOfTheMonth">{{ $t('register.availability.firstWeekOfTheMonth') }}</option>
+      <option value="lastWeekOfTheMonth">{{ $t('register.availability.lastWeekOfTheMonth') }}</option>
     </select>
   </div>
 
   <div style="margin-top: 16px;">
-        <label>Time range</label><br>
+        <label>{{ $t('register.availability.timeRange') }}</label><br>
         <div class="horizontal-group">
             <input type="time" v-model="form.startTime" class="text-input">
             <input type="time" v-model="form.endTime" class="text-input">
@@ -104,12 +101,12 @@
     </div>
 
         <div class="right" style="margin-top: 16px;">
-            <button class="search-button" @click="addRule">+ Add rule</button>
+            <button class="search-button" @click="addRule">{{ $t('register.availability.addRule') }}</button>
         </div>
     </div>
 
         <div class="form-section">
-        <h4>Added rules:</h4>
+        <h4>{{ $t('register.availability.addedRules') }}</h4>
         <div v-for="(rule, index) in form.rules" :key="index" style="background: #f3f3f3; padding: 12px; border-radius: 6px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;">
             <span>{{ rule }}</span>
             <span>
@@ -120,15 +117,15 @@
     </div>
     <div class="form-section nav-footer">
   <router-link to="/register-parking-1">
-    <button class="search-button" style="padding: 10px 31px;">← Tilbake</button>
+    <button class="search-button" style="padding: 10px 31px;">{{ $t('register.back') }}</button>
   </router-link>
   <div class="progress-container">
     <div class="progress-bar">
       <div class="progress-fill" :style="{ width: `${(currentStep / totalSteps) * 100}%` }"></div>
     </div>
-    <span class="progress-text">Side {{ currentStep }} av {{ totalSteps }}</span>
+    <span class="progress-text">{{ $t('register.page', { current: currentStep, total: totalSteps }) }}</span>
   </div>
-  <button class="search-button" @click="validateAndGoToNextPage">Neste side →</button>
+  <button class="search-button" @click="validateAndGoToNextPage">{{ $t('register.next') }}</button>
 </div>
 
   <FooterComponent /> <!-- Footer Component -->
@@ -168,6 +165,19 @@
         return { form }
         },
 
+      mounted() {
+      this.form.allDays = [
+      "monday",
+      "tuesday",
+      "wednesday",
+      "thursday",
+      "friday",
+      "saturday",
+      "sunday"
+    ];
+  },
+
+
     methods: {
     validateMeasurement(field) {
       let value = this.form[field];
@@ -197,46 +207,48 @@
       this.form[field] = value;
     },
     
-    addRule() {
-    if (
-        this.form.selectedDays.length === 0 ||
-        !this.form.repeatPattern ||
-        !this.form.startTime ||
-        !this.form.endTime
-    ) {
-        alert('Please select all fields before adding a rule.');
-        return;
-    }
+addRule() {
+  if (
+    this.form.selectedDays.length === 0 ||
+    !this.form.repeatPattern ||
+    !this.form.startTime ||
+    !this.form.endTime
+  ) {
+    alert(this.$t("register.availability.error"));
+    return;
+  }
 
-    const allDays = this.form.allDays;
-    const selectedDays = this.form.selectedDays;
+  const allDays = this.form.allDays;
+  const selectedDays = this.form.selectedDays;
+  const selectedSet = new Set(selectedDays);
+  const unselectedDays = allDays.filter(day => !selectedSet.has(day));
 
-    const selectedSet = new Set(selectedDays);
-    const unselectedDays = allDays.filter(day => !selectedSet.has(day));
+  let daysDescription = "";
+  if (selectedSet.size === allDays.length) {
+    daysDescription = this.$t("register.availability.everyDay");
+  } else if (unselectedDays.length <= 2) {
+    const translated = unselectedDays.map(day => this.$t(day)).join(", ");
+    daysDescription = `${this.$t("register.availability.everyDayExcept")} ${translated})`;
+  } else {
+    const sortedSelected = allDays.filter(day => selectedSet.has(day));
+    daysDescription = sortedSelected.map(day => this.$t(day)).join(", ");
+  }
 
-    this.form.daysDescription = '';
-    if (selectedSet.size === allDays.length) {
-        this.form.daysDescription = 'Every day';
-    } else if (unselectedDays.length <= 2) {
-        this.form.daysDescription = `Every day (except ${unselectedDays.join(', ')})`;
-    } else {
-        const sortedSelected = allDays.filter(day => selectedSet.has(day));
-        this.form.daysDescription = sortedSelected.join(', ');
-    }
+  this.form.daysDescription = daysDescription;
 
-    const rule = `${this.form.repeatPattern} · ${this.form.daysDescription} · ${this.form.startTime}–${this.form.endTime}`;
-    this.form.rules.push(rule);
-    console.log(this.form.rules);
+  const repeatTranslated = this.$t(`register.availability.${this.form.repeatPattern}`);
+  const rule = `${repeatTranslated} · ${daysDescription} · ${this.form.startTime} - ${this.form.endTime}`;
+  this.form.rules.push(rule);
 
-    this.errors.selectedDays = false;
-    this.touched.selectedDays = false;
+  this.errors.selectedDays = false;
+  this.touched.selectedDays = false;
 
-    // Reset fields
-    this.form.selectedDays = [];
-    this.form.repeatPattern = '';
-    this.form.startTime = '08:00';
-    this.form.endTime = '16:00';
-    },
+  // Reset fields
+  this.form.selectedDays = [];
+  this.form.repeatPattern = "";
+  this.form.startTime = "08:00";
+  this.form.endTime = "16:00";
+},
 
     editRule(index) {
         const rule = this.form.rules[index];
