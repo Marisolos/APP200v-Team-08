@@ -1,7 +1,7 @@
 <template>
   <footer class="footer">
     <div class="footer-left">
-      <p>Ledig plass? Lei den ut. Trenger plass? Book den.</p>
+      <p>{{ $t('footer.footer') }}</p>
     </div>
     <div class="footer-right">
       <p><router-link to="/faq">FAQ</router-link></p>
