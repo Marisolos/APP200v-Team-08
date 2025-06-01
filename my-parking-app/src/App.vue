@@ -11,17 +11,21 @@
       </div>
 
       <div class="nav-links">
-        <router-link to="/finn-parkering" v-if="user">Find Parking</router-link>
-        <router-link to="/listings" v-if="user">Listings</router-link>
-        <router-link to="/register-parking-1" v-if="user">Register Parking</router-link>
-        <router-link to="/faq" v-if="user">FAQ</router-link>
+        <router-link to="/finn-parkering" v-if="user">{{ $t('nav.findParking') }}</router-link>
+        <router-link to="/listings" v-if="user">{{ $t('nav.listings') }}</router-link>
+        <router-link to="/register-parking-1" v-if="user">{{ $t('nav.register') }}</router-link>
+        <router-link to="/faq" v-if="user">{{ $t('nav.faq') }}</router-link>
       </div>
 
       <div class="right-controls" v-if="user">
         <router-link to="/edit-profile" class="profile-link">
           <img :src="user.photoURL || defaultAvatar" alt="Profile" class="profile-img" />
         </router-link>
-        <button @click="logout" class="logout-btn">Log out</button>
+        <button @click="logout" class="logout-btn">{{ $t('nav.logout') }}</button>
+        <select v-model="$i18n.locale" class="language-selector">
+          <option value="no">🇳🇴 NO</option>
+          <option value="en">🇬🇧 EN</option>
+        </select>
       </div>
     </div>
 
@@ -182,4 +186,14 @@ created() {
 .navbar-spacer {
   height: 57px;
 }
+
+.language-selector {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  background-color: white;
+  cursor: pointer;
+}
+
 </style>

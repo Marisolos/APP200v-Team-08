@@ -1,15 +1,15 @@
 <template>
   <div class="register-container">
-    <h2 class="page-title">Registrer parkering</h2>
+    <h2 class="page-title">{{ $t('register.title') }}</h2>
 
     <div class="form-section center">
-      <label><strong>📍 Bruk lagret adresse fra profilen?</strong></label><br>
-      <label><input type="radio" name="useSavedAddress" checked> Ja, bruk lagret adresse</label>
-      <label style="margin-left: 16px;"><input type="radio" name="useSavedAddress"> Nei, jeg vil skrive inn en ny adresse</label>
+      <label><strong>{{ $t('register.useSavedAddress.question') }}</strong></label><br>
+      <label><input type="radio" name="useSavedAddress" checked>{{ $t('register.useSavedAddress.yes') }}</label>
+      <label style="margin-left: 16px;"><input type="radio" name="useSavedAddress">{{ $t('register.useSavedAddress.no') }}</label>
     </div>
 
     <div class="form-section">
-      <label>Adresse</label>
+      <label>{{ $t('register.address.label') }}</label>
       <AddressAutocomplete 
       @blur="touched.adresse = true"
       @focus="errors.adresse = false"
@@ -17,16 +17,16 @@
       :touched="touched"
       @postcode-updated="hentPoststed"/>
       <span v-if="errors.adresse && touched.adresse" class="error-text">
-        {{ errors.adresseMessage || 'Adresse må fylles ut.' }}
+        {{ errors.adresseMessage || $t('register.address.error') }}
       </span>
     </div>
 
     <div class="form-section">
-      <label>Postnummer / Poststed</label>
+      <label>{{ $t('register.postcode.label') }}</label>
       <div class="horizontal-group">
         <input
           type="text"
-          placeholder="Postnummer"
+          :placeholder="$t('register.postcode.placeholder')"
           v-model="form.postnummer"
           @input="hentPoststed"
           @blur="touched.postnummer = true"
@@ -38,17 +38,17 @@
         />
         <input
           type="text"
-          placeholder="Poststed"
+          :placeholder="$t('register.postplace.placeholder')"
           v-model="form.poststed"
           readonly
           class="text-input readonly"
         />
       </div>
-      <span v-if="errors.postnummer && touched.postnummer" class="error-text">Postnummer må fylles ut.</span>
+      <span v-if="errors.postnummer && touched.postnummer" class="error-text">{{ $t('register.postcode.error') }}</span>
     </div>
 
     <div class="form-section">
-      <label>Pris</label>
+      <label>{{ $t('register.price.label') }}</label>
       <div class="price-group">
         <div class="price-wrapper">
           <input type="text" v-model="form.pris" @input="validerPris" @blur="touched.pris = true" @focus="errors.pris = false"
@@ -58,13 +58,13 @@
           <span class="price-label">kr</span>
         </div>
         <select class="text-input select-tid" v-model="form.betalingsperiode">
-          <option>per time</option>
-          <option>per dag</option>
-          <option>per uke</option>
-          <option>per måned</option>
+          <option>{{ $t('register.price.perHour') }}</option>
+          <option>{{ $t('register.price.perDay') }}</option>
+          <option>{{ $t('register.price.perWeek') }}</option>
+          <option>{{ $t('register.price.perMonth') }}</option>
         </select>
       </div>
-      <span v-if="errors.pris && touched.pris" class="error-text">Pris må fylles ut.</span>
+      <span v-if="errors.pris && touched.pris" class="error-text">{{ $t('register.price.error') }}</span>
     </div>
 
     <div class="form-section" style="position: relative; display: flex; align-items: center; justify-content: flex-end; min-height: 80px;">
@@ -72,9 +72,9 @@
         <div class="progress-bar">
           <div class="progress-fill" :style="{ width: `${(currentStep / totalSteps) * 100}%` }"></div>
         </div>
-        <span class="progress-text">Side {{ currentStep }} av {{ totalSteps }}</span>
+        <span class="progress-text">{{ $t('register.page', { current: currentStep, total: totalSteps }) }}</span>
       </div>
-    <button class="search-button" @click="validateAndGoToNextPage">Neste side →</button>
+    <button class="search-button" @click="validateAndGoToNextPage">{{ $t('register.next') }}</button>
   </div>
   <FooterComponent /> <!-- Footer Component -->
   </div>
@@ -142,7 +142,7 @@ export default {
         const erGyldigAdresse = await this.validateAdresseMedNominatim()
         if (!erGyldigAdresse) {
           this.errors.adresse = true
-          this.errors.adresseMessage = 'Ugyldig adresse. Vennligst velg en fra listen.'
+          this.errors.adresseMessage = this.$t('register.address.invalid')
           return
         }
         this.form.progressLevel = 2;

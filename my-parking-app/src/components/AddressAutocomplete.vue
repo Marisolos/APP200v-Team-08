@@ -7,7 +7,7 @@
         @input="onInput"
         @focus="onFocus"
         @blur="handleBlur"
-        placeholder="Skriv inn adresse..."
+        :placeholder="$t('register.address.placeholder')"
       />
       <ul v-if="showDropdown && suggestions.length">
         <li
