@@ -1,24 +1,24 @@
 <template>
   <section class="ads-container">
     <div class="ads-content">
-    <h2 class="ads-title">Available Parking Spots</h2>
+    <h2 class="ads-title">{{ $t('listings.title') }}</h2>
 
     <div class="ads-wrapper">
 
       <input
   type="text"
   v-model="searchQuery"
-  placeholder="Search by address, city, price, or day"
+  :placeholder="$t('listings.search.placeholder')"
   class="search-bar"
 />
 
 <div class="sort-container">
-  <label for="sort">Sort by:</label>
+  <label for="sort">{{ $t('listings.sort.label') }}</label>
   <select v-model="sortOption" id="sort" class="sort-select">
-    <option value="date-desc">Date added (newest first)</option>
-    <option value="date-asc">Date added (oldest first)</option>
-    <option value="price-asc">Price (low to high)</option>
-    <option value="price-desc">Price (high to low)</option>
+    <option value="date-desc">{{ $t('listings.sort.date.desc') }}</option>
+    <option value="date-asc">{{ $t('listings.sort.date.asc') }}  </option>
+    <option value="price-asc">{{ $t('listings.sort.price.asc') }}</option>
+    <option value="price-desc">{{ $t('listings.sort.price.desc') }}</option>
   </select>
 </div>
 
@@ -30,34 +30,34 @@
       >
         <div class="ad-details">
           <h3 class="ad-title">{{ ad.address }}</h3>
-          <p class="ad-subtitle">Published {{ formatDateOnly(ad.createdAt) }}</p>
-          <p class="ad-address"><strong>Price:</strong> {{ ad.price }} kr /hour</p>
-          <p class="ad-address"><strong>Available:</strong> {{ ad.availableWeekdays }} | {{ ad.startTime }}–{{ ad.endTime }}</p>
+          <p class="ad-subtitle">{{ $t('listings.published') }} {{ formatDateOnly(ad.createdAt) }}</p>
+          <p class="ad-address"><strong>{{ $t('listings.price') }}</strong> {{ ad.price }} {{ $t('listings.price.full') }}</p>
+          <p class="ad-address"><strong>{{ $t('listings.available') }}</strong> {{ ad.availableWeekdays }} | {{ ad.startTime }}–{{ ad.endTime }}</p>
           <div class="ad-book">
 
             <div v-if="expandedAdId === ad.id" class="ad-details-expanded">
-  <p><strong>Access:</strong> {{ ad.accessType }}</p>
-  <p><strong>Dimensions:</strong> L: {{ ad.dimensions?.length }}m, W: {{ ad.dimensions?.width }}m, H: {{ ad.dimensions?.height || 'N/A' }}m</p>
-  <p><strong>Features:</strong>
-    <span v-if="ad.roofChecked">🏠 Roof</span>
-    <span v-if="ad.hasCamera">📹 Camera</span>
-    <span v-if="ad.hasCharger">🔌 Charger</span>
-    <span v-if="ad.hasHeating">🔥 Heated</span>
+  <p><strong>{{ $t('listings.access') }}</strong> {{ ad.accessType }}</p>
+  <p><strong>{{ $t('listings.dimensions') }}</strong> L: {{ ad.dimensions?.length }}m, W: {{ ad.dimensions?.width }}m, H: {{ ad.dimensions?.height || 'N/A' }}m</p>
+  <p><strong>{{ $t('listings.features') }}</strong>
+    <span v-if="ad.roofChecked">{{ $t('listings.feature.roof') }}</span>
+    <span v-if="ad.hasCamera">{{ $t('listings.feature.camera') }}</span>
+    <span v-if="ad.hasCharger">{{ $t('listings.feature.charger') }}</span>
+    <span v-if="ad.hasHeating">{{ $t('listings.feature.heating') }}</span>
   </p>
-  <p v-if="ad.guidelines"><strong>Rules:</strong> {{ ad.guidelines }}</p>
-  <p v-if="ad.additionalInfo"><strong>Info:</strong> {{ ad.additionalInfo }}</p>
+  <p v-if="ad.guidelines"><strong>{{ $t('listings.rules') }}</strong> {{ ad.guidelines }}</p>
+  <p v-if="ad.additionalInfo"><strong>{{ $t('listings.info') }}</strong> {{ ad.additionalInfo }}</p>
   <div v-if="ad.photos?.length">
-    <h4>Photos:</h4>
+    <h4>{{ $t('listings.photos') }}</h4>
     <img v-for="(url, i) in ad.photos" :key="i" :src="url" class="ad-photo" />
   </div>
 </div>
 
-            <button class="book-btn" @click="selectAd(ad)">Book</button>
+            <button class="book-btn" @click="selectAd(ad)">{{ $t('listings.book') }}</button>
             <button
   class="details-btn"
   @click="expandedAdId = expandedAdId === ad.id ? null : ad.id"
 >
-  {{ expandedAdId === ad.id ? 'Hide Details' : 'Show Details' }}
+  {{ expandedAdId === ad.id ? $t('listings.details.hide') : $t('listings.details.show') }}
 </button>
           </div>
         </div>
@@ -65,9 +65,9 @@
         <!-- Booking Form -->
         <div v-if="selectedAd?.id === ad.id" class="booking-form">
           <label>
-  <span>Day:</span>
+  <span>{{ $t('listings.day.label') }}</span>
   <select v-model="bookingDay" class="booking-select">
-    <option disabled value="">Select a day</option>
+    <option disabled value="">{{ $t('listings.select.day') }}</option>
     <option
       v-for="day in allDays"
       :key="day"
@@ -81,18 +81,18 @@
 
 
           <label>
-            Start Time:
+            {{ $t('listings.start') }}
             <input type="time" v-model="bookingStart" class="booking-input" />
           </label>
 
           <label>
-            End Time:
+            {{ $t('listings.end') }}
             <input type="time" v-model="bookingEnd" class="booking-input" />
           </label>
 
           <div class="booking-actions">
-            <button @click="confirmBooking" class="confirm-btn">Confirm</button>
-            <button @click="cancelBooking" class="cancel-btn">Cancel</button>
+            <button @click="confirmBooking" class="confirm-btn">{{ $t('listings.confirm') }}</button>
+            <button @click="cancelBooking" class="cancel-btn">{{ $t('listings.cancel') }}</button>
           </div>
         </div>
       </article>
@@ -100,7 +100,7 @@
         v-if="visibleAds.length < allAds.length"
         class="load-more-container"
       >
-        <button @click="loadMore" class="load-more-btn">Load More</button>
+        <button @click="loadMore" class="load-more-btn">{{ $t('listings.loadmore') }}</button>
       </div>
     </div>
     </div>
@@ -251,14 +251,14 @@ updateVisibleAds() {
     },
     async confirmBooking() {
       if (!this.bookingDay || !this.bookingStart || !this.bookingEnd) {
-        alert("Please fill in all fields.");
+        alert(this.$t('listings.alert.fillfields'));
         return;
       }
 
       const auth = getAuth();
       const user = auth.currentUser;
       if (!user) {
-        alert("You must be logged in to book.");
+        alert(this.$t('listings.alert.loginrequired'));
         return;
       }
 
@@ -294,7 +294,7 @@ updateVisibleAds() {
       });
 
       if (hasConflict) {
-        alert("This time slot is already booked.");
+        alert(this.$t('listings.alert.conflict'));
         return;
       }
 
@@ -309,7 +309,7 @@ updateVisibleAds() {
         createdAt: new Date()
       });
 
-      alert("Booking successful!");
+      alert(this.$t('listings.alert.success'));
       this.cancelBooking();
     }
   },
