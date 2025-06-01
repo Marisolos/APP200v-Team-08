@@ -17,9 +17,6 @@
     <div v-if="noResults" class="no-results">
       No parking spots found in this area.
     </div>
-<<<<<<< HEAD
-=======
->>>>>>> 6d899375ad8e16491b61e96c7e310840fc5f4d61
   </div>
 </template>
 
@@ -28,12 +25,9 @@
 
 import { ref, onMounted, onActivated, onDeactivated } from 'vue';
 import { db } from '@/firebase';
-<<<<<<< HEAD
 import { collection, getDocs } from 'firebase/firestore'; 
-=======
 import { collection, getDocs, addDoc, query, where, serverTimestamp } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
->>>>>>> 6d899375ad8e16491b61e96c7e310840fc5f4d61
 
 const map = ref(null); //Google Map instance
 const markers = ref([]); //All map markers

@@ -123,22 +123,16 @@
     <div class="progress-bar">
       <div class="progress-fill" :style="{ width: `${(currentStep / totalSteps) * 100}%` }"></div>
     </div>
-<<<<<<< HEAD
-=======
     <span class="progress-text">{{ $t('register.page', { current: currentStep, total: totalSteps }) }}</span>
   </div>
   <button class="search-button" @click="validateAndGoToNextPage">{{ $t('register.next') }}</button>
 </div>
-
->>>>>>> 6d899375ad8e16491b61e96c7e310840fc5f4d61
 </div>
   </template>
   
   
   <script>
   import { useRegisterFormStore } from '@/stores/registerForm'
-<<<<<<< HEAD
-
   export default {
     name: "RegisterParking2",
     data(){
@@ -146,7 +140,6 @@
       currentStep: 2,
       totalSteps: 4
         };
-=======
 
   export default {
     name: "RegisterParking2",
@@ -159,7 +152,6 @@
       width: false,
       selectedDays: false,
       height: false
->>>>>>> 6d899375ad8e16491b61e96c7e310840fc5f4d61
     },
     touched: {
       length: false,
