@@ -20,6 +20,9 @@
             </button>
           <p v-if="form.images.length >= 4">Maksimalt 4 bilder tillatt.</p>
         </div>
+        <p v-if="errors.images && touched.images" style="color: red; margin-top: 8px;">
+          Du må legge til minst ett bilde av parkeringsplassen.
+        </p>
         <div class="image-preview-container">
           <div
             class="image-preview"
@@ -61,6 +64,13 @@
         ></textarea>
         <p>{{ form.additionalInfo.length }}/500 tegn brukt</p>
       </div>
+
+    <div v-if="showConfirmCheckbox" :class="['form-section', { 'warning-box': !confirmEmptyTextAccepted }]">
+      <label :style="{ color: !confirmEmptyTextAccepted ? 'red' : '#333' }">
+        <input type="checkbox" v-model="confirmEmptyTextAccepted" />
+        Rules eller Additional info har ikke noe tekst. Fortsett uansett?
+      </label>
+    </div>
   
       <div class="form-section nav-footer">
   <router-link to="/register-parking-2">
@@ -72,9 +82,7 @@
     </div>
     <span class="progress-text">Side {{ currentStep }} av {{ totalSteps }}</span>
   </div>
-  <router-link to="/register-parking-4">
-    <button class="search-button">Neste side →</button>
-  </router-link>
+  <button class="search-button" @click="validateAndGoToNextPage">Neste side →</button>
 </div>
   <FooterComponent /> <!-- Footer Component -->
 </div>
@@ -84,13 +92,18 @@
   import { useRegisterFormStore } from '@/stores/registerForm'
   import { ref } from 'vue'
   import FooterComponent from "@/components/Footer.vue"; // Importer FooterComponent for bruk i denne komponenten
-
+  import { useRouter } from 'vue-router'
+  const router = useRouter()
+  const errors = ref({ images: false })
+  const touched = ref({ images: false })
   const currentStep = 3;
   const totalSteps = 4;
-
   const isDraggingOver = ref(false)
   const form = useRegisterFormStore()
   const fileInput = ref(null)
+  const confirmEmptyTextAccepted = ref(false)
+  const showConfirmCheckbox = ref(false)
+
   
   function triggerFileInput() {
     fileInput.value.click()
@@ -125,6 +138,8 @@
     previewUrl: URL.createObjectURL(file),
     type: file.type,
     }) // Lagrer File-objekt
+      errors.value.images = false
+      touched.value.images = false
       console.log("Lagt til bilde:", file.name, file);
       console.log("form.images nå:", form.images);
     }
@@ -155,8 +170,30 @@
   return image.previewUrl || image.url || '';
 }
 
+function validateAndGoToNextPage() {
 
-  </script>
+  // Bildevalidering
+  errors.value.images = form.images.length === 0
+  touched.value.images = true
+
+  // Tekstvalidering
+  const guidelinesEmpty = !form.guidelines.trim()
+  const additionalInfoEmpty = !form.additionalInfo.trim()
+  const requiresConfirmation = (guidelinesEmpty || additionalInfoEmpty) && !confirmEmptyTextAccepted.value
+  showConfirmCheckbox.value = (guidelinesEmpty || additionalInfoEmpty)
+
+  // Hvis noen av kravene ikke er oppfylt, stopp
+  if (errors.value.images || requiresConfirmation) {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+    return
+  }
+
+  // Alt OK – gå videre
+  form.progressLevel = 4;
+  router.push('/register-parking-4')
+}
+
+</script>
   
   
   <style scoped>
@@ -376,8 +413,8 @@
 }
 
 .upload-container.dragging {
-  border-color: #B3C3AF;
-  background-color: #f9fdf7;
+  border-color: #ABC89D;
+  background-color: #fff5e4;
   border-radius: 10px; /* Samme her for sikkerhets skyld */
 }
 
@@ -422,4 +459,9 @@
   gap: 12px;
   justify-content: center;
 }
+
+.warning-box {
+  background-color: #fff9f9;
+}
+
 </style>

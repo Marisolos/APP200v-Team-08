@@ -5,6 +5,7 @@ import "bootstrap/dist/js/bootstrap.bundle.min.js";
 
 import { createApp } from "vue";
 import { createPinia } from "pinia";
+import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
 import App from "./App.vue";
 import router from "./router";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
@@ -21,7 +22,9 @@ let app;
 onAuthStateChanged(auth, () => {
   if (!app) {
     app = createApp(App);
-    app.use(createPinia());
+    const pinia = createPinia();
+    pinia.use(piniaPluginPersistedstate); //Enable persistedState
+    app.use(pinia);
     app.use(router);
     app.use(VueGoogleMaps, {
       load: {
