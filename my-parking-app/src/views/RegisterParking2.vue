@@ -133,13 +133,6 @@
   
   <script>
   import { useRegisterFormStore } from '@/stores/registerForm'
-  export default {
-    name: "RegisterParking2",
-    data(){
-        return {
-      currentStep: 2,
-      totalSteps: 4
-        };
 
   export default {
     name: "RegisterParking2",

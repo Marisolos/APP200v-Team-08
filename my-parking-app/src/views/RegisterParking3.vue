@@ -71,8 +71,6 @@
         {{ $t('register.rulesAndAdditionalInfo.confirmation') }}
       </label>
     </div>
-<<<<<<< HEAD
-=======
   
       <div class="form-section nav-footer">
   <router-link to="/register-parking-2">
@@ -86,21 +84,16 @@
   </div>
   <button class="search-button" @click="validateAndGoToNextPage">{{ $t('register.next') }}</button>
 </div>
->>>>>>> 6d899375ad8e16491b61e96c7e310840fc5f4d61
 </div>
 </template>
   
   <script setup>
   import { useRegisterFormStore } from '@/stores/registerForm'
   import { ref } from 'vue'
-<<<<<<< HEAD
-
-=======
   import { useRouter } from 'vue-router'
   const router = useRouter()
   const errors = ref({ images: false })
   const touched = ref({ images: false })
->>>>>>> 6d899375ad8e16491b61e96c7e310840fc5f4d61
   const currentStep = 3;
   const totalSteps = 4;
   const isDraggingOver = ref(false)
