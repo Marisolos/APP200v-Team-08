@@ -281,6 +281,6 @@
   "listings.alert.loginrequired": "Du må være logget inn for å kunne booke.",
   "listings.alert.conflict": "Dette tidspunktet er allerede booket.",
   "listings.alert.success": "Bookingen var vellykket!",
-
-  "listings.price.full": " kr / time"
+  "listings.price.full": " kr / time",
+  "listings.owner.notice": "Du eier denne annonsen"
 }

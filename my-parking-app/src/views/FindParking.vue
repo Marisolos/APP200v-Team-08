@@ -31,6 +31,8 @@ import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 
+
+
 const map = ref(null); //Google Map instance
 const markers = ref([]); //All map markers
 const parkingSpots = ref([]); //Parking spot data from database
@@ -107,115 +109,121 @@ const fetchAndRenderParkingSpots = async (centerLat = null, centerLng = null) =>
       });
 
       //Show info window on marker click
-      marker.addListener("click", () => {
-        const detailsContent = `
+marker.addListener("click", () => {
+  const auth = getAuth();
+  const currentUser = auth.currentUser;
+  const isOwner = currentUser && currentUser.uid === data.ownerId;
+
+  const detailsContent = `
+    <div class="infobox-content">
+      <h4>${data.address}</h4>
+      <p><strong>${t('findParking.price')}:</strong> ${data.price} kr/${data.paymentPeriod}</p>
+      <p><strong>${t('findParking.available')}:</strong> ${data.availableWeekdays}</p>
+      <p><strong>${t('findParking.time')}:</strong> ${data.startTime} - ${data.endTime}</p>
+      <p><strong>${t('findParking.features')}:</strong>
+        ${data.hasCamera ? t('findParking.camera') + ', ' : ''}
+        ${data.hasCharger ? t('findParking.charger') + ', ' : ''}
+        ${data.hasHeating ? t('findParking.heated') + ', ' : ''}
+        ${data.roofChecked ? t('findParking.roof') : ''}
+      </p>
+      ${data.dimensions ? `
+        <p><strong>${t('findParking.dimensions')}:</strong> 
+          ${t('findParking.length')}: ${data.dimensions.length}m, 
+          ${t('findParking.width')}: ${data.dimensions.width}m
+          ${data.dimensions.height ? `, ${t('findParking.height')}: ${data.dimensions.height}m` : ''}
+        </p>` : ''}
+
+      ${data.guidelines ? `<p><strong>${t('findParking.guidelines')}:</strong> ${data.guidelines}</p>` : ''}
+      ${data.additionalInfo ? `<p><strong>${t('findParking.additionalInfo')}:</strong> ${data.additionalInfo}</p>` : ''}
+
+      ${isOwner 
+        ? `<p style="color:#b22222; font-style:italic; margin-top:10px;">${t('listings.owner.notice') || 'You own this listing'}</p>` 
+        : `<button id="open-booking-form" class="infobox-book-btn">Book</button>`}
+    </div>`;
+
+  infowindow.value.setContent(detailsContent);
+  infowindow.value.open(map.value, marker);
+
+  // Add booking form only if not the owner
+  if (!isOwner) {
+    google.maps.event.addListenerOnce(infowindow.value, 'domready', () => {
+      document.getElementById('open-booking-form')?.addEventListener('click', () => {
+        const bookingForm = `
           <div class="infobox-content">
-            <h4>${data.address}</h4>
-            <p><strong>${t('findParking.price')}:</strong> ${data.price} kr/${data.paymentPeriod}</p>
-            <p><strong>${t('findParking.available')}:</strong> ${data.availableWeekdays}</p>
-            <p><strong>${t('findParking.time')}:</strong> ${data.startTime} - ${data.endTime}</p>
-            <p><strong>${t('findParking.features')}:</strong>
-              ${data.hasCamera ? t('findParking.camera') + ', ' : ''}
-              ${data.hasCharger ? t('findParking.charger') + ', ' : ''}
-              ${data.hasHeating ? t('findParking.heated') + ', ' : ''}
-              ${data.roofChecked ? t('findParking.roof') : ''}
-            </p>
-          ${data.dimensions ? `
-            <p><strong>${t('findParking.dimensions')}:</strong> 
-              ${t('findParking.length')}: ${data.dimensions.length}m, 
-              ${t('findParking.width')}: ${data.dimensions.width}m
-              ${data.dimensions.height ? `, ${t('findParking.height')}: ${data.dimensions.height}m` : ''}
-            </p>` : ''}
-
-          ${data.guidelines ? `<p><strong>${t('findParking.guidelines')}:</strong> ${data.guidelines}</p>` : ''}
-          ${data.additionalInfo ? `<p><strong>${t('findParking.additionalInfo')}:</strong> ${data.additionalInfo}</p>` : ''}
-
-            <button id="open-booking-form" class="infobox-book-btn">Book</button>
+            <h4>Book ${data.address}</h4>
+            <label>${t('findParking.day')}:
+              <select id="booking-day">
+                <option value="">${t('findParking.selectDay')}</option>
+                ${allDays.map(day => `<option value="${day}">${day}</option>`).join("")}
+              </select>
+            </label>
+            <label>${t('findParking.startTime')}: <input type="time" id="booking-start" value="${data.startTime}" /></label>
+            <label>${t('findParking.endTime')}: <input type="time" id="booking-end" value="${data.endTime}" /></label>
+            <div style="margin-top:10px;">
+              <button id="confirm-booking" class="infobox-book-btn">${t('findParking.confirm')}</button>
+              <button id="cancel-booking" class="infobox-cancel-btn">${t('findParking.cancel')}</button>
+            </div>
           </div>`;
 
-        infowindow.value.setContent(detailsContent);
-        infowindow.value.open(map.value, marker);
+        infowindow.value.setContent(bookingForm);
 
-        //Add booking form when user clicks "Book"
         google.maps.event.addListenerOnce(infowindow.value, 'domready', () => {
-          document.getElementById('open-booking-form')?.addEventListener('click', () => {
-            const bookingForm = `
-              <div class="infobox-content">
-                <h4>Book ${data.address}</h4>
-                <label>${t('findParking.day')}:
-                  <select id="booking-day">
-                    <option value="">${t('findParking.selectDay')}</option>
-                    ${allDays.map(day => `<option value="${day}">${day}</option>`).join("")}
-                  </select>
-                </label>
-                <label>${t('findParking.startTime')}: <input type="time" id="booking-start" value="${data.startTime}" /></label>
-                <label>${t('findParking.endTime')}: <input type="time" id="booking-end" value="${data.endTime}" /></label>
-                <div style="margin-top:10px;">
-                  <button id="confirm-booking" class="infobox-book-btn">${t('findParking.confirm')}</button>
-                  <button id="cancel-booking" class="infobox-cancel-btn">${t('findParking.cancel')}</button>
-                </div>
-              </div>`;
+          document.getElementById('cancel-booking')?.addEventListener('click', () => infowindow.value.close());
 
-            infowindow.value.setContent(bookingForm);
+          document.getElementById('confirm-booking')?.addEventListener('click', async () => {
+            const day = document.getElementById('booking-day')?.value;
+            const start = document.getElementById('booking-start')?.value;
+            const end = document.getElementById('booking-end')?.value;
 
-            google.maps.event.addListenerOnce(infowindow.value, 'domready', () => {
-              //Handle cancel button
-              document.getElementById('cancel-booking')?.addEventListener('click', () => infowindow.value.close());
+            if (!day || !start || !end) return alert("Please fill in all fields.");
+            const user = getAuth().currentUser;
+            if (!currentUser) return alert("You must be logged in to book.");
+            if (currentUser.uid === data.ownerId) return alert("You cannot book your own listing.");
 
-              //Handle confirm booking
-              document.getElementById('confirm-booking')?.addEventListener('click', async () => {
-                const day = document.getElementById('booking-day')?.value;
-                const start = document.getElementById('booking-start')?.value;
-                const end = document.getElementById('booking-end')?.value;
 
-                if (!day || !start || !end) return alert("Please fill in all fields.");
-                const user = getAuth().currentUser;
-                if (!user) return alert("You must be logged in to book.");
+            const bookingsRef = collection(db, "bookings");
+            const q = query(bookingsRef, where("listingId", "==", doc.id), where("day", "==", day));
+            const snapshot = await getDocs(q);
 
-                //Check for time conflicts
-                const bookingsRef = collection(db, "bookings");
-                const q = query(bookingsRef, where("listingId", "==", doc.id), where("day", "==", day));
-                const snapshot = await getDocs(q);
-
-                const hasConflict = snapshot.docs.some(doc => {
-                  const existing = doc.data();
-                  return start < existing.endTime && end > existing.startTime;
-                });
-
-                if (hasConflict) return alert("This time slot is already booked.");
-
-                //Save booking
-                await addDoc(bookingsRef, {
-                  renterId: user.uid,
-                  listingId: doc.id,
-                  address: data.address,
-                  price: data.price,
-                  day,
-                  startTime: start,
-                  endTime: end,
-                  createdAt: new Date()
-                });
-
-                //Save rental history
-                await addDoc(collection(db, "rentalHistory"), {
-                  ownerId: data.ownerId,
-                  renterId: user.uid,
-                  listingId: doc.id,
-                  address: data.address,
-                  price: data.price,
-                  day,
-                  startTime: start,
-                  endTime: end,
-                  timestamp: serverTimestamp()
-                });
-
-                alert("Booking successful!");
-                infowindow.value.close();
-              });
+            const hasConflict = snapshot.docs.some(doc => {
+              const existing = doc.data();
+              return start < existing.endTime && end > existing.startTime;
             });
+
+            if (hasConflict) return alert("This time slot is already booked.");
+
+            await addDoc(bookingsRef, {
+              renterId: user.uid,
+              listingId: doc.id,
+              address: data.address,
+              price: data.price,
+              day,
+              startTime: start,
+              endTime: end,
+              createdAt: new Date()
+            });
+
+            await addDoc(collection(db, "rentalHistory"), {
+              ownerId: data.ownerId,
+              renterId: user.uid,
+              listingId: doc.id,
+              address: data.address,
+              price: data.price,
+              day,
+              startTime: start,
+              endTime: end,
+              timestamp: serverTimestamp()
+            });
+
+            alert("Booking successful!");
+            infowindow.value.close();
           });
         });
       });
+    });
+  }
+});
+
 
       markers.value.push(marker);
     }
