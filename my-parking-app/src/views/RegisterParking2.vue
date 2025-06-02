@@ -192,7 +192,7 @@
       // Replace dot back with comma for display
       value = value.replace('.', ',');
       this.form[field] = value;
-      // 
+      
       value = value.replace(/^0+(?=\d)/, "");
 
       if (value.length > 1) {
@@ -342,11 +342,11 @@ addRule() {
 
 .price-wrapper {
   position: relative;
-  width: 66.66%; /* 2/3 av bredden */
+  width: 66.66%; 
 }
 
 .select-tid {
-  width: 33.33%; /* 1/3 av bredden */
+  width: 33.33%; 
 }
 
 .price-label {

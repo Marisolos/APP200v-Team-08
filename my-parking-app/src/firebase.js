@@ -10,7 +10,7 @@ import {
   getDocs
 } from "firebase/firestore";
 
-// Your Firebase configuration
+
 const firebaseConfig = {
   apiKey: "AIzaSyDrGNUr4ZGwzBqVS6Fujt6fus63WS3vp6k",
   authDomain: "parkingapp-59c1a.firebaseapp.com",

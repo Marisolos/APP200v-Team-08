@@ -108,7 +108,7 @@
           {{ $t('editprofile.google.warning') }} {{ $t('editprofile.google.picture') }}
         </p>
 
-        <!-- Delete account button aligned at the bottom -->
+        <!-- Delete account button -->
         <div class="delete-account-container">
           <p class="delete-warning">
             {{ $t('editprofile.delete.warning') }}
@@ -128,7 +128,6 @@
   <div v-else>
 
     <div class="accordion-section">
-      <!-- ✅ Corrected "Current Bookings" block -->
       <button class="accordion-toggle" @click="showCurrent = !showCurrent">
         <span>{{ $t('editprofile.bookings.current') }} ({{ currentBookings.length }})</span>
         <span>{{ showCurrent ? '▲' : '▼' }}</span>
@@ -146,7 +145,7 @@
         </div>
       </div>
 
-      <!-- ✅ Canceled stays collapsed by default -->
+  
       <button class="accordion-toggle" @click="showCanceled = !showCanceled">
         <span>{{ $t('editprofile.bookings.canceled') }} ({{ canceledBookings.length }})</span>
         <span>{{ showCanceled ? '▲' : '▼' }}</span>
@@ -367,7 +366,7 @@ export default {
       parkingHistory: [],
       loadingHistory: false,
 
-      // Toggles for booking sections
+      
       showCurrent: true,
       showCanceled: false,
       showCompleted: false,
@@ -701,7 +700,7 @@ openEditModal(listing) {
       .sort((a, b) => {
         const dateA = a.createdAt?.toDate?.() || new Date(0);
         const dateB = b.createdAt?.toDate?.() || new Date(0);
-        return dateB - dateA; // Sort descending: newest first
+        return dateB - dateA; 
       });
   } catch (err) {
     console.error("Error fetching parking history:", err);
@@ -875,7 +874,7 @@ async confirmDeleteAccount() {
       await reauthenticateWithCredential(user, credential);
     }
 
-    // === 2. Delete all user's listings ===
+    // === Delete all of the user's listings ===
     const listingsSnap = await getDocs(query(
       collection(db, "listings"),
       where("ownerId", "==", user.uid)
@@ -885,10 +884,10 @@ async confirmDeleteAccount() {
     );
     await Promise.all(listingDeletes);
 
-    // === 3. Delete user document ===
+    // === Delete user document ===
     await deleteDoc(doc(db, "users", user.uid));
 
-    // === 4. Delete Firebase Auth user ===
+    // === Delete Firebase Auth user ===
     await deleteUser(user);
 
     alert(this.$t('editprofile.feedback.deleteaccount.success'));
@@ -984,7 +983,7 @@ h1 {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
 }
 
-/* ✅ Fixed alignment and equal height */
+/* Fixed alignment and equal height */
 .profile-content {
   display: flex;
   align-items: stretch;
@@ -1217,7 +1216,7 @@ input:focus {
   margin-bottom: 10px;
 }
 
-/* ==== Delete Account Section (Aligned to Bottom) ==== */
+/* ==== Delete Account Section ==== */
 .delete-account-container {
   margin-top: auto;
   text-align: right;

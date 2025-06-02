@@ -259,7 +259,7 @@ export default {
   position: absolute;
   right: 8px;
   top: 50%;
-  transform: translateY(-80%); /* Endret fra -50% til -55% */
+  transform: translateY(-80%); 
   color: #666;
   pointer-events: none;
 }
