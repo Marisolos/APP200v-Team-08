@@ -209,7 +209,44 @@
   "editprofile.mapday.Su": "Sunday",
   "editprofile.date.na": "N/A",
 
+
+
   "footer.footer": "Available spot? Rent it out. Need a spot? Book it.",
+
+
+
+  "findParking.title": "Find Parking",
+  "findParking.placeholder": "Enter location...",
+  "findParking.search": "Search",
+  "findParking.noResults": "No parking spots found in this area.",
+  "findParking.price": "Price",
+  "findParking.available": "Available",
+  "findParking.time": "Time",
+  "findParking.features": "Features",
+  "findParking.camera": "Camera",
+  "findParking.charger": "Charger",
+  "findParking.heated": "Heated",
+  "findParking.roof": "Roof",
+  "findParking.dimensions": "Dimensions",
+  "findParking.length": "L",
+  "findParking.width": "W",
+  "findParking.height": "H",
+  "findParking.guidelines": "Guidelines",
+  "findParking.additionalInfo": "Additional info",
+  "findParking.book": "Book",
+  "findParking.bookTitle": "Book {address}",
+  "findParking.day": "Day",
+  "findParking.selectDay": "Select",
+  "findParking.startTime": "Start Time",
+  "findParking.endTime": "End Time",
+  "findParking.confirm": "Confirm",
+  "findParking.cancel": "Cancel",
+  "findParking.fillFieldsAlert": "Please fill in all fields.",
+  "findParking.mustBeLoggedInAlert": "You must be logged in to book.",
+  "findParking.timeSlotTakenAlert": "This time slot is already booked.",
+  "findParking.bookingSuccessAlert": "Booking successful!",
+  "findParking.locationSearchAlert": "Please enter a location to search.",
+  "findParking.locationNotFoundAlert": "Could not find the specified location.",
 
 
 

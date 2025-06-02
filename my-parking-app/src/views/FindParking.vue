@@ -2,12 +2,12 @@
 <template>
   <div class="find-parking-page">
     <!-- Page title -->
-    <h2 class="page-title">Find Parking</h2>
+    <h2 class="page-title">{{ $t('findParking.title') }}</h2>
 
     <!-- Input field and search button -->
     <div class="search-container">
-      <input type="text" v-model="searchLocation" placeholder="Enter location..." class="location-input">
-      <button @click="searchMap" class="search-button">Search</button>
+      <input type="text" v-model="searchLocation" :placeholder="$t('findParking.placeholder')" class="location-input">
+      <button @click="searchMap" class="search-button">{{ $t('findParking.search') }}</button>
     </div>
 
     <!-- Map container -->
@@ -15,7 +15,7 @@
 
     <!-- Message shown if no parking spots found -->
     <div v-if="noResults" class="no-results">
-      No parking spots found in this area.
+      {{ $t('findParking.noResults') }}
     </div>
   </div>
 </template>
@@ -27,6 +27,9 @@ import { ref, onMounted, onActivated, onDeactivated } from 'vue';
 import { db } from '@/firebase';
 import { collection, getDocs, addDoc, query, where, serverTimestamp } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const map = ref(null); //Google Map instance
 const markers = ref([]); //All map markers
@@ -108,18 +111,25 @@ const fetchAndRenderParkingSpots = async (centerLat = null, centerLng = null) =>
         const detailsContent = `
           <div class="infobox-content">
             <h4>${data.address}</h4>
-            <p><strong>Price:</strong> ${data.price} kr/${data.paymentPeriod}</p>
-            <p><strong>Available:</strong> ${data.availableWeekdays}</p>
-            <p><strong>Time:</strong> ${data.startTime} - ${data.endTime}</p>
-            <p><strong>Features:</strong>
-              ${data.hasCamera ? 'Camera, ' : ''}
-              ${data.hasCharger ? 'Charger, ' : ''}
-              ${data.hasHeating ? 'Heated, ' : ''}
-              ${data.roofChecked ? 'Roof' : ''}
+            <p><strong>${t('findParking.price')}:</strong> ${data.price} kr/${data.paymentPeriod}</p>
+            <p><strong>${t('findParking.available')}:</strong> ${data.availableWeekdays}</p>
+            <p><strong>${t('findParking.time')}:</strong> ${data.startTime} - ${data.endTime}</p>
+            <p><strong>${t('findParking.features')}:</strong>
+              ${data.hasCamera ? t('findParking.camera') + ', ' : ''}
+              ${data.hasCharger ? t('findParking.charger') + ', ' : ''}
+              ${data.hasHeating ? t('findParking.heated') + ', ' : ''}
+              ${data.roofChecked ? t('findParking.roof') : ''}
             </p>
-            ${data.dimensions ? `<p><strong>Dimensions:</strong> L: ${data.dimensions.length}m, B: ${data.dimensions.width}m ${data.dimensions.height ? `, H: ${data.dimensions.height}m` : ''}</p>` : ''}
-            ${data.guidelines ? `<p><strong>Guidelines:</strong> ${data.guidelines}</p>` : ''}
-            ${data.additionalInfo ? `<p><strong>Additional info:</strong> ${data.additionalInfo}</p>` : ''}
+          ${data.dimensions ? `
+            <p><strong>${t('findParking.dimensions')}:</strong> 
+              ${t('findParking.length')}: ${data.dimensions.length}m, 
+              ${t('findParking.width')}: ${data.dimensions.width}m
+              ${data.dimensions.height ? `, ${t('findParking.height')}: ${data.dimensions.height}m` : ''}
+            </p>` : ''}
+
+          ${data.guidelines ? `<p><strong>${t('findParking.guidelines')}:</strong> ${data.guidelines}</p>` : ''}
+          ${data.additionalInfo ? `<p><strong>${t('findParking.additionalInfo')}:</strong> ${data.additionalInfo}</p>` : ''}
+
             <button id="open-booking-form" class="infobox-book-btn">Book</button>
           </div>`;
 
@@ -132,17 +142,17 @@ const fetchAndRenderParkingSpots = async (centerLat = null, centerLng = null) =>
             const bookingForm = `
               <div class="infobox-content">
                 <h4>Book ${data.address}</h4>
-                <label>Day:
+                <label>${t('findParking.day')}:
                   <select id="booking-day">
-                    <option value="">Select</option>
+                    <option value="">${t('findParking.selectDay')}</option>
                     ${allDays.map(day => `<option value="${day}">${day}</option>`).join("")}
                   </select>
                 </label>
-                <label>Start Time: <input type="time" id="booking-start" value="${data.startTime}" /></label>
-                <label>End Time: <input type="time" id="booking-end" value="${data.endTime}" /></label>
+                <label>${t('findParking.startTime')}: <input type="time" id="booking-start" value="${data.startTime}" /></label>
+                <label>${t('findParking.endTime')}: <input type="time" id="booking-end" value="${data.endTime}" /></label>
                 <div style="margin-top:10px;">
-                  <button id="confirm-booking" class="infobox-book-btn">Confirm</button>
-                  <button id="cancel-booking" class="infobox-cancel-btn">Cancel</button>
+                  <button id="confirm-booking" class="infobox-book-btn">${t('findParking.confirm')}</button>
+                  <button id="cancel-booking" class="infobox-cancel-btn">${t('findParking.cancel')}</button>
                 </div>
               </div>`;
 

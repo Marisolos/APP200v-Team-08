@@ -206,8 +206,44 @@
   "editprofile.mapday.Su": "Søndag",
   "editprofile.date.na": "Ikke tilgjengelig",
 
+
+
   "footer.footer": "Ledig plass? Lei den ut. Trenger plass? Book den.",
 
+
+
+  "findParking.title": "Finn parkering",
+  "findParking.placeholder": "Skriv inn sted...",
+  "findParking.search": "Søk",
+  "findParking.noResults": "Fant ingen parkeringsplasser i dette området.",
+  "findParking.price": "Pris",
+  "findParking.available": "Tilgjengelig",
+  "findParking.time": "Tid",
+  "findParking.features": "Egenskaper",
+  "findParking.camera": "Kamera",
+  "findParking.charger": "Lader",
+  "findParking.heated": "Oppvarmet",
+  "findParking.roof": "Tak",
+  "findParking.dimensions": "Størrelse",
+  "findParking.length": "L",
+  "findParking.width": "B",
+  "findParking.height": "H",
+  "findParking.guidelines": "Retningslinjer",
+  "findParking.additionalInfo": "Tilleggsinfo",
+  "findParking.book": "Bestill",
+  "findParking.bookTitle": "Bestill {address}",
+  "findParking.day": "Dag",
+  "findParking.selectDay": "Velg",
+  "findParking.startTime": "Starttid",
+  "findParking.endTime": "Sluttid",
+  "findParking.confirm": "Bekreft",
+  "findParking.cancel": "Avbryt",
+  "findParking.fillFieldsAlert": "Vennligst fyll inn alle felt.",
+  "findParking.mustBeLoggedInAlert": "Du må være innlogget for å bestille.",
+  "findParking.timeSlotTakenAlert": "Dette tidspunktet er allerede booket.",
+  "findParking.bookingSuccessAlert": "Bestillingen var vellykket!",
+  "findParking.locationSearchAlert": "Skriv inn et sted for å søke.",
+  "findParking.locationNotFoundAlert": "Fant ikke det angitte stedet.",
 
 
 
