@@ -57,7 +57,20 @@
   </div>
 </div>
 
-            <button class="book-btn" @click="selectAd(ad)">{{ $t('listings.book') }}</button>
+         
+<button
+  v-if="user && ad.ownerId !== user.uid"
+  class="book-btn"
+  @click="selectAd(ad)"
+>
+  {{ $t('listings.book') }}
+</button>
+
+
+<p v-else-if="user && ad.ownerId === user.uid" class="owner-label">
+  {{ $t('listings.owner.notice') || 'You own this listing' }}
+</p>
+
             <button
   class="details-btn"
   @click="expandedAdId = expandedAdId === ad.id ? null : ad.id"
@@ -121,11 +134,13 @@ export default {
   name: "ListingsPage",
   data() {
     return {
+      user: null,
       allAds: [],
       visibleAds: [],
       adsPerPage: 5,
       currentPage: 1,
       selectedAd: null,
+      currentUserId: null,
       bookingDay: "",
       bookingStart: "",
       bookingEnd: "",
@@ -322,6 +337,10 @@ updateVisibleAds() {
 
   mounted() {
     this.fetchAds();
+       const auth = getAuth();
+  this.user = auth.currentUser;  
+  this.currentUserId = this.user ? this.user.uid : null;
+  this.fetchAds();
   }
 
 };
@@ -564,6 +583,12 @@ updateVisibleAds() {
   height: 100%;
   object-fit: cover;
   display: block;
+}
+.owner-notice {
+  color: #b22222;
+  font-size: 13px;
+  font-style: italic;
+  margin-top: 4px;
 }
 
 
