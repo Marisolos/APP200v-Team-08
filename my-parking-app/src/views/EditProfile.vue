@@ -1,13 +1,13 @@
 <template>
   <div class="profile-page">
-    <h1>My profile</h1>
+    <h1>{{ $t('editprofile.title') }}</h1>
 
     <!-- === MAIN NAVIGATION TABS === -->
     <div class="main-nav">
-      <button :class="{ active: currentTab === 'profile' }" @click="currentTab = 'profile'">Profile</button>
-      <button :class="{ active: currentTab === 'history' }" @click="currentTab = 'history'">Parking History</button>
-      <button :class="{ active: currentTab === 'rentalHistory' }" @click="currentTab = 'rentalHistory'">Rental History</button>
-      <button :class="{ active: currentTab === 'listings' }" @click="currentTab = 'listings'">My Listings</button>
+      <button :class="{ active: currentTab === 'profile' }" @click="currentTab = 'profile'">{{ $t('editprofile.tab.profile') }}</button>
+      <button :class="{ active: currentTab === 'history' }" @click="currentTab = 'history'">{{ $t('editprofile.tab.history') }}</button>
+      <button :class="{ active: currentTab === 'rentalHistory' }" @click="currentTab = 'rentalHistory'">{{ $t('editprofile.tab.rentalHistory') }}</button>
+      <button :class="{ active: currentTab === 'listings' }" @click="currentTab = 'listings'">{{ $t('editprofile.tab.listings') }}</button>
     </div>
 
     <!-- === PROFILE TAB === -->
@@ -15,71 +15,71 @@
       <!-- LEFT SECTION -->
       <div class="form-left">
         <label>
-          <h3>Firstname</h3>
+          <h3>{{ $t('editprofile.firstname') }}</h3>
           <input type="text" v-model="firstName" placeholder="Firstname" />
           <p class="validation-error" v-if="submitted && firstName && !/^[A-Za-z]+$/.test(firstName)">
-            First name must only contain letters.
+            {{ $t('editprofile.validation.firstname') }}
           </p>
         </label>
 
         <label>
-          <h3>Lastname</h3>
+          <h3>{{ $t('editprofile.lastname') }}</h3>
           <input type="text" v-model="lastName" placeholder="Lastname" />
           <p class="validation-error" v-if="submitted && lastName && !/^[A-Za-z]+$/.test(lastName)">
-            Last name must only contain letters.
+            {{ $t('editprofile.validation.lastname') }}
           </p>
         </label>
 
         <label>
-          <h3>Registered address</h3>
+          <h3>{{ $t('editprofile.address') }}</h3>
           <input type="text" v-model="address" placeholder="Address" />
           <p class="validation-error" v-if="submitted && address && address.length < 3">
-            Address must be at least 3 characters.
+            {{ $t('editprofile.validation.address') }}
           </p>
         </label>
 
         <label>
-          <h3>Username</h3>
+          <h3>{{ $t('editprofile.username') }}</h3>
           <input type="text" v-model="username" placeholder="e.g. john_doe" />
           <p class="validation-error" v-if="submitted && !/^[a-zA-Z0-9_]+$/.test(username)">
-            Username must contain only letters, numbers, or underscores.
+            {{ $t('editprofile.validation.username') }}
           </p>
         </label>
 
-        <h3>Contact info</h3>
+        <h3>{{ $t('editprofile.contactinfo') }}</h3>
 
         <label>
-          <h3>Phone number</h3>
+          <h3>{{ $t('editprofile.phone') }}</h3>
           <input type="tel" v-model="phone" placeholder="+4712341234" />
           <p class="validation-error" v-if="submitted && phone && !/^\+?\d{7,15}$/.test(phone)">
-            Phone number must be valid and contain only digits.
+            {{ $t('editprofile.validation.phone') }}
           </p>
         </label>
 
         <label>
-          <h3>Mail</h3>
+          <h3>{{ $t('editprofile.email') }}</h3>
           <input type="email" v-model="email" placeholder="example@hotmail.com" :disabled="isGoogleUser" />
           <p class="validation-error" v-if="submitted && email && !/.+@.+\..+/.test(email)">
-            Please enter a valid email address.
+            {{ $t('editprofile.validation.email') }}
           </p>
         </label>
 
-        <p v-if="isGoogleUser" class="google-warning">You're signed in with Google.</p>
+        <p v-if="isGoogleUser" class="google-warning">{{ $t('editprofile.google.warning') }}</p>
 
-        <h3>Change password</h3>
-        <input type="password" placeholder="Old password" v-model="oldPassword" :disabled="isGoogleUser" />
-        <input type="password" placeholder="New password" v-model="newPassword" :disabled="isGoogleUser" />
-        <input type="password" placeholder="Confirm password" v-model="confirmPassword" :disabled="isGoogleUser" />
+        <h3>{{ $t('editprofile.password.change') }}</h3>
+        <input type="password" :placeholder="$t('editprofile.password.old')" v-model="oldPassword" :disabled="isGoogleUser" />
+        <input type="password" :placeholder="$t('editprofile.password.new')" v-model="newPassword" :disabled="isGoogleUser" />
+        <input type="password" :placeholder="$t('editprofile.password.confirm')" v-model="confirmPassword" :disabled="isGoogleUser" />
 
         <p class="validation-error" v-if="!isGoogleUser && newPassword && newPassword.length < 6">
-          New password must be at least 6 characters.
+          {{ $t('editprofile.validation.newpassword.length') }}
         </p>
         <p class="validation-error" v-if="!isGoogleUser && newPassword && newPassword !== confirmPassword">
-          Passwords do not match.
+          {{ $t('editprofile.validation.newpassword.match') }}
         </p>
 
         <p v-if="isGoogleUser" class="google-warning">
-          You're signed in with Google. To change your password, please visit your Google Account settings.
+          {{ $t('editprofile.google.warning') }} {{ $t('editprofile.google.password') }}
         </p>
 
         <button
@@ -88,33 +88,33 @@
           @click="updateProfile"
           :disabled="updatingProfile"
         >
-          {{ updatingProfile ? "Saving..." : "Save" }}
+          {{ updatingProfile ? $t('editprofile.saving') : $t('editprofile.save') }}
         </button>
       </div>
 
       <!-- RIGHT SECTION -->
       <div class="form-right">
-        <h3>Profile picture</h3>
+        <h3>{{ $t('editprofile.profilepicture') }}</h3>
         <div class="profile-pic-box">
           <img :src="previewUrl || user?.photoURL || defaultAvatar" alt="Profile picture" class="profile-pic" />
         </div>
 
         <input type="file" id="picUpload" @change="onFileChange" :disabled="isGoogleUser" hidden />
         <label for="picUpload" class="upload-btn" :class="{ disabled: isGoogleUser }">
-          Change Picture
+          {{ $t('editprofile.picture.change') }}
         </label>
 
         <p v-if="isGoogleUser" class="google-warning pic-note">
-          You're signed in with Google. To change your profile picture, update it in your Google Account.
+          {{ $t('editprofile.google.warning') }} {{ $t('editprofile.google.picture') }}
         </p>
 
         <!-- Delete account button aligned at the bottom -->
         <div class="delete-account-container">
           <p class="delete-warning">
-            Deleting your account will permanently remove your profile and all of your listings.
+            {{ $t('editprofile.delete.warning') }}
           </p>
           <button class="delete-account-btn" @click="confirmDeleteAccount">
-            Delete Account
+            {{ $t('editprofile.delete.button') }}
           </button>
         </div>
       </div>
@@ -122,15 +122,15 @@
 
 <!-- === HISTORY TAB === -->
 <div v-if="currentTab === 'history'" class="secondary-tab">
-  <h2>Parking History</h2>
-  <div v-if="loadingHistory">Loading your parking history...</div>
-  <div v-else-if="parkingHistory.length === 0">You haven’t booked any spots yet.</div>
+  <h2>{{ $t('editprofile.tab.history')}}</h2>
+  <div v-if="loadingHistory">{{ $t('editprofile.history.loading') }}</div>
+  <div v-else-if="parkingHistory.length === 0">{{ $t('editprofile.history.none') }}</div>
   <div v-else>
 
     <div class="accordion-section">
       <!-- ✅ Corrected "Current Bookings" block -->
       <button class="accordion-toggle" @click="showCurrent = !showCurrent">
-        <span>Current Bookings ({{ currentBookings.length }})</span>
+        <span>{{ $t('editprofile.bookings.current') }} ({{ currentBookings.length }})</span>
         <span>{{ showCurrent ? '▲' : '▼' }}</span>
       </button>
       <div v-show="showCurrent" class="accordion-content">
@@ -142,13 +142,13 @@
           <p><strong>Address:</strong> {{ booking.address }}</p>
           <p><strong>Booked:</strong> {{ formatDate(booking.createdAt?.toDate?.()) }}</p>
           <p><strong>Time:</strong> {{ booking.startTime }}–{{ booking.endTime }} on {{ booking.day }}</p>
-          <button class="cancel-btn" @click="cancelBooking(booking.id)">Cancel</button>
+          <button class="cancel-btn" @click="cancelBooking(booking.id)">{{ $t('editprofile.bookings.cancel') }}</button>
         </div>
       </div>
 
       <!-- ✅ Canceled stays collapsed by default -->
       <button class="accordion-toggle" @click="showCanceled = !showCanceled">
-        <span>Canceled Bookings ({{ canceledBookings.length }})</span>
+        <span>{{ $t('editprofile.bookings.canceled') }} ({{ canceledBookings.length }})</span>
         <span>{{ showCanceled ? '▲' : '▼' }}</span>
       </button>
       <div v-show="showCanceled" class="accordion-content">
@@ -161,7 +161,7 @@
           <p><strong>Booked:</strong> {{ formatDate(booking.createdAt?.toDate?.()) }}</p>
           <p><strong>Time:</strong> {{ booking.startTime }}–{{ booking.endTime }} on {{ booking.day }}</p>
           <p style="color: crimson; font-style: italic;">
-            This parking was canceled on {{ formatDate(parseDate(booking.canceledAt)) }}
+            {{ $t('editprofile.bookings.canceledon') }} {{ formatDate(parseDate(booking.canceledAt)) }}
           </p>
           <button
             class="cancel-btn"
@@ -179,14 +179,14 @@
 
 <!-- === RENTAL HISTORY TAB === -->
 <div v-if="currentTab === 'rentalHistory'" class="secondary-tab">
-  <h2>Rental History</h2>
-  <div v-if="loadingRentalHistory">Loading rental history...</div>
-  <div v-else-if="rentalHistory.length === 0">No rentals yet.</div>
+  <h2>{{ $t('editprofile.tab.rentalHistory') }}</h2>
+  <div v-if="loadingRentalHistory">{{ $t('editprofile.rental.loading') }}</div>
+  <div v-else-if="rentalHistory.length === 0">{{ $t('editprofile.rental.none') }}</div>
   <div v-else class="accordion-section">
 
     <!-- Currently Rented -->
     <button class="accordion-toggle" @click="showCurrentRentals = !showCurrentRentals">
-      <span>Currently Rented ({{ currentRentals.length }})</span>
+      <span>{{ $t('editprofile.rentals.current') }} ({{ currentRentals.length }})</span>
       <span>{{ showCurrentRentals ? '▲' : '▼' }}</span>
     </button>
     <div v-show="showCurrentRentals" class="accordion-content">
@@ -196,13 +196,13 @@
         <p><strong>Booked:</strong> {{ formatDate(rental.timestamp) }}</p>
         <p><strong>Time:</strong> {{ rental.startTime }}–{{ rental.endTime }} on {{ rental.day }}</p>
 
-         <button class="cancel-btn" @click="cancelRental(rental.id)">Cancel Rental</button>
+         <button class="cancel-btn" @click="cancelRental(rental.id)">{{ $t('editprofile.rentals.cancel') }} </button>
       </div>
     </div>
 
     <!-- Canceled Rentals -->
     <button class="accordion-toggle" @click="showCanceledRentals = !showCanceledRentals">
-      <span>Canceled Rentals ({{ canceledRentals.length }})</span>
+      <span>{{ $t('editprofile.rentals.canceled') }} ({{ canceledRentals.length }})</span>
       <span>{{ showCanceledRentals ? '▲' : '▼' }}</span>
     </button>
     <div v-show="showCanceledRentals" class="accordion-content">
@@ -212,7 +212,7 @@
         <p><strong>Booked:</strong> {{ formatDate(rental.timestamp) }}</p>
         <p><strong>Time:</strong> {{ rental.startTime }}–{{ rental.endTime }} on {{ rental.day }}</p>
         <p style="color: crimson; font-style: italic;">
-          This rental was canceled on {{ formatDate(parseDate(rental.canceledAt)) }}
+          {{ $t('editprofile.rentals.canceledon') }} {{ formatDate(parseDate(rental.canceledAt)) }}
         </p>
       </div>
     </div>
@@ -223,23 +223,23 @@
 
     <!-- === LISTINGS TAB === -->
     <div v-if="currentTab === 'listings'" class="secondary-tab">
-      <h2>My Listings</h2>
-      <div v-if="loadingListings">Loading your listings...</div>
-      <div v-else-if="listings.length === 0">You haven’t listed any spots yet.</div>
+      <h2>{{ $t('editprofile.listings.title') }}</h2>
+      <div v-if="loadingListings">{{ $t('editprofile.listings.loading') }}</div>
+      <div v-else-if="listings.length === 0">{{ $t('editprofile.listings.none') }}</div>
       <div v-else class="listing-cards">
         <div v-for="(listing, index) in listings" :key="listing.id" class="listing-card">
-          <h3>Listing {{ index + 1 }}</h3>
-          <p class="published-date">Published on: {{ formatDate(listing.createdAt?.toDate?.()) }}</p>
-          <p><strong>Address:</strong> {{ listing.address }}</p>
-          <p><strong>Price:</strong> {{ listing.price }} kr /hour</p>
-          <p><strong>Available:</strong> {{ mapWeekdays(listing.availableWeekdays) }} | {{ listing.startTime }}–{{ listing.endTime }}</p>
+          <h3>{{ $t('editprofile.listing.label') }} {{ index + 1 }}</h3>
+          <p class="published-date">{{ $t('editprofile.listing.published') }} {{ formatDate(listing.createdAt?.toDate?.()) }}</p>
+          <p><strong>{{ $t('editprofile.listing.edit.address') }}</strong> {{ listing.address }}</p>
+          <p><strong>{{ $t('editprofile.listing.edit.price') }}:</strong> {{ listing.price }} {{ $t('editprofile.listing.priceunit') }}</p>
+          <p><strong>{{ $t('editprofile.listing.edit.days') }}</strong> {{ mapWeekdays(listing.availableWeekdays) }} | {{ listing.startTime }}–{{ listing.endTime }}</p>
 
-          <button class="submit-btn" @click="openEditModal(listing)">Edit</button>
+          <button class="submit-btn" @click="openEditModal(listing)">{{ $t('editprofile.listing.edit') }}</button>
 
           <div v-if="editingListing?.id === listing.id" class="edit-modal">
-            <h3>Edit Listing</h3>
+            <h3>{{ $t('editprofile.listing.edit.title') }}</h3>
 
-            <label>Available Days:</label>
+            <label>{{ $t('editprofile.listing.edit.days') }}</label>
             <div class="weekdays-checkboxes">
               <label v-for="day in allWeekdays" :key="day.value">
                 <input type="checkbox" :value="day.value" v-model="editForm.availableWeekdays" />
@@ -247,23 +247,23 @@
               </label>
             </div>
 
-            <label>Address:
+            <label>{{ $t('editprofile.listing.edit.address') }}:
               <input v-model="editForm.address" />
             </label>
-            <label>Price:
+            <label>{{ $t('editprofile.listing.edit.price') }}:
               <input type="number" v-model="editForm.price" />
             </label>
-            <label>Start Time:
+            <label>{{ $t('editprofile.listing.edit.startTime') }}:
               <input type="time" v-model="editForm.startTime" />
             </label>
-            <label>End Time:
+            <label>{{ $t('editprofile.listing.edit.endTime') }}:
               <input type="time" v-model="editForm.endTime" />
             </label>
 
             <div style="display: flex; gap: 10px; margin-top: 10px;">
-              <button class="submit-btn" @click="saveEdit">Save</button>
-              <button class="delete-btn" @click="deleteListing(listing.id)">Delete</button>
-              <button class="cancel-btn" @click="cancelEdit">Cancel</button>
+              <button class="submit-btn" @click="saveEdit">{{ $t('editprofile.listing.edit.save') }}</button>
+              <button class="delete-btn" @click="deleteListing(listing.id)">{{ $t('editprofile.listing.edit.delete') }}</button>
+              <button class="cancel-btn" @click="cancelEdit">{{ $t('editprofile.listing.edit.cancel') }}</button>
             </div>
           </div>
         </div>
@@ -521,21 +521,21 @@ async updateProfile() {
         await updateProfile(user, updates);
         this.user.photoURL = photoURL;
 
-        alert("Profile updated!");
+        alert(this.$t('editprofile.feedback.uploadsuccess'));
       } catch (err) {
         console.error("Error uploading profile picture:", err);
-        alert("Failed to upload profile picture.");
+        alert(this.$t('editprofile.feedback.uploadfail'));
       } finally {
         this.updatingProfile = false;
       }
       return;
     } else {
       await updateProfile(user, updates);
-      alert("Profile updated!");
+      alert(this.$t('editprofile.feedback.uploadsuccess'));
     }
   } catch (err) {
     console.error("Error updating profile:", err);
-    alert("Failed to update profile.");
+    alert(this.$t('editprofile.feedback.updatefail'));
   } finally {
     try {
       const userDocRef = docRef(db, "users", user.uid);
@@ -558,7 +558,7 @@ async updateProfile() {
       }
     } catch (err) {
       console.error("Error writing user info to Firestore:", err);
-      alert("Failed to save address/phone/username.");
+      alert(this.$t('editprofile.feedback.savedatafail'));
     }
 
     this.updatingProfile = false;
@@ -566,7 +566,7 @@ async updateProfile() {
 },
 
 async cancelBooking(bookingId) {
-  if (!confirm("Are you sure you want to cancel this booking?")) return;
+  if (!confirm(this.$t('editprofile.cancelbooking.confirm'))) return;
 
   try {
     const cancelTime = new Date();
@@ -581,15 +581,15 @@ async cancelBooking(bookingId) {
       b.id === bookingId ? { ...b, canceledAt: cancelTime } : b
     );
 
-    alert("Booking canceled and marked in your history.");
+    alert(this.$t('editprofile.feedback.bookingcanceled'));
   } catch (err) {
     console.error("Error canceling booking:", err);
-    alert("Failed to cancel the booking. Please try again.");
+    alert(this.$t('editprofile.feedback.bookingcancelfail'));
   }
 },
 
 async cancelRental(rentalId) {
-  if (!confirm("Are you sure you want to cancel this rental?")) return;
+  if (!confirm(this.$t('editprofile.cancelrental.confirm'))) return;
 
   try {
     const cancelTime = new Date();
@@ -605,10 +605,10 @@ async cancelRental(rentalId) {
       rental.canceledAt = cancelTime;
     }
 
-    alert("Rental canceled.");
+    alert(this.$t('editprofile.feedback.rentalcanceled'));
   } catch (err) {
     console.error("Error canceling rental:", err);
-    alert("Failed to cancel rental. Please try again.");
+    alert(this.$t('editprofile.feedback.rentalcancelfail'));
   }
 },
 
@@ -640,13 +640,13 @@ parseDate(date) {
   },
 
   async deleteListing(listingId) {
-    if (!confirm("Are you sure you want to delete this listing?")) return;
+    if (!confirm(this.$t('editprofile.deletelisting.confirm'))) return;
     try {
       await deleteDoc(doc(db, "parkingSpots", listingId));
       this.listings = this.listings.filter(listing => listing.id !== listingId);
     } catch (err) {
       console.error("Error deleting listing:", err);
-      alert("Could not delete the listing.");
+      alert(this.$t('editprofile.feedback.listingdeletefail'));
     }
   },
 
@@ -677,7 +677,7 @@ openEditModal(listing) {
       this.editingListing = null;
     } catch (err) {
       console.error("Failed to update listing:", err);
-      alert("Could not save changes.");
+      alert(this.$t('editprofile.feedback.listingupdatefail'));
     }
   },
 
@@ -794,7 +794,7 @@ onFileChange(e) {
 
   const file = e.target.files[0];
   if (!file || file.size > 2 * 1024 * 1024) {
-    alert("Image must be under 2MB.");
+    alert(this.$t('editprofile.alert.picture.size'));
     return;
   }
 
@@ -844,7 +844,7 @@ onFileChange(e) {
   },
 
   formatDate(date) {
-    if (!date) return "N/A";
+    if (!date) return this.$t('editprofile.date.na');
     return new Intl.DateTimeFormat("en-GB", {
       dateStyle: "short",
       timeStyle: "short"
@@ -853,7 +853,7 @@ onFileChange(e) {
   
 
 async confirmDeleteAccount() {
-  if (!confirm("Are you sure you want to delete your account? This will remove your profile and all your listings.")) return;
+  if (!confirm(this.$t('editprofile.deleteaccount.confirm'))) return;
 
   const auth = getAuth();
   const user = auth.currentUser;
@@ -866,9 +866,9 @@ async confirmDeleteAccount() {
       await reauthenticateWithPopup(user, provider);
     } else {
       // Email/password user
-      const password = prompt("Please enter your password to confirm account deletion:");
+      const password = prompt(this.$t('editprofile.prompt.password'));
       if (!password) {
-        alert("Password is required to delete your account.");
+        alert(this.$t('editprofile.alert.password.required'));
         return;
       }
       const credential = EmailAuthProvider.credential(user.email, password);
@@ -891,11 +891,11 @@ async confirmDeleteAccount() {
     // === 4. Delete Firebase Auth user ===
     await deleteUser(user);
 
-    alert("Account and all listings have been successfully deleted.");
+    alert(this.$t('editprofile.feedback.deleteaccount.success'));
     this.$router.push("/");
   } catch (err) {
     console.error("Error deleting account:", err);
-    alert("Failed to delete account. Please try again.");
+    alert(this.$t('editprofile.feedback.deleteaccount.fail'));
   }
 }
  }
