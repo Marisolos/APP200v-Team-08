@@ -1,27 +1,24 @@
 <template>
   <div class="faq-container">
+    <!-- Canvas background for car and cloud animation -->
     <canvas ref="carCanvas" class="car-canvas-background" width="400" height="200"></canvas>
 
+    <!-- Section title -->
     <h2 class="section-title">Frequently Asked Questions</h2>
 
-    <div class="faq-search">
-      <input
-        type="text"
-        placeholder="Search questions..."
-        v-model="searchQuery"
-        class="faq-search-input"
-      />
-    </div>
-
+    <!-- Loop through each FAQ item -->
     <div
-      v-for="(item, index) in filteredFaqs"
+      v-for="(item, index) in faqs"
       :key="index"
       class="faq-item"
     >
+      <!-- Question with toggle interaction -->
       <div class="faq-question" @click="toggle(index)">
         {{ item.question }}
         <span class="arrow" :class="{ open: activeIndex === index }">▼</span>
       </div>
+
+      <!-- Conditionally rendered answer with transition -->
       <transition name="fade-slide">
         <div v-if="activeIndex === index" class="faq-answer">
           {{ item.answer }}
@@ -31,15 +28,12 @@
   </div>
 </template>
 
-
 <script>
-
 export default {
   name: "FAQ",
   data() {
     return {
-      activeIndex: null,
-      searchQuery: "",
+      activeIndex: null, // Keeps track of which FAQ is expanded
       faqs: [
         {
           question: "How do I rent a parking spot?",
@@ -65,114 +59,80 @@ export default {
     };
   },
 
- mounted() {
-  const canvas = this.$refs.carCanvas;
-  const ctx = canvas.getContext("2d");
+  mounted() {
+    const canvas = this.$refs.carCanvas;
+    const ctx = canvas.getContext("2d");
 
-  const car = new Image();
-  car.src = require('@/assets/car.png');
+    const car = new Image();
+    car.src = require('@/assets/car.png');
 
-  car.onload = () => {
-    const carWidth = 300;
-    const carHeight = (car.height / car.width) * carWidth;
-
-    // ✅ Define cloud ONCE outside animate
+    // Cloud definitions
     const cloud = {
-  x: 250,               // move to the left
-  baseY: 50,           // vertical position
-  size: 30,            // larger
-  phase: Math.random() * Math.PI * 2
-};
+      x: 250,
+      baseY: 50,
+      size: 30,
+      phase: Math.random() * Math.PI * 2
+    };
 
-const cloud2 = {
-  x: canvas.width - 70,  // move to the right
-  baseY: 70,             // slightly lower
-  size: 18,              // smaller
-  phase: Math.random() * Math.PI * 2
-};
+    const cloud2 = {
+      x: canvas.width - 70,
+      baseY: 70,
+      size: 18,
+      phase: Math.random() * Math.PI * 2
+    };
 
-    function animate(timestamp) {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Animation logic
+    car.onload = () => {
+      const carWidth = 300;
+      const carHeight = (car.height / car.width) * carWidth;
 
-ctx.save();
+      const animate = (timestamp) => {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-const x = cloud.x;
-const y = cloud.baseY + Math.sin(timestamp / 400 + cloud.phase) * 2;
-const s = cloud.size;
+        // Draw clouds
+        drawCloud(ctx, cloud, timestamp);
+        drawCloud(ctx, cloud2, timestamp);
 
-ctx.fillStyle = "white";
-ctx.strokeStyle = "#385464";
-ctx.lineWidth = 2;
-ctx.shadowColor = "rgba(0, 0, 0, 0.05)";
-ctx.shadowBlur = 4;
+        // Draw car
+        ctx.drawImage(car, 10, canvas.height - carHeight - 5, carWidth, carHeight);
 
-ctx.beginPath();
-// Left hump
-ctx.arc(x - s * 0.6, y, s * 0.6, Math.PI * 0.5, Math.PI * 1.5);
-// Top hump
-ctx.arc(x, y - s * 0.6, s * 0.9, Math.PI, 0);
-// Right hump
-ctx.arc(x + s * 0.6, y, s * 0.6, Math.PI * 1.5, Math.PI * 0.5);
-ctx.closePath();
-
-ctx.fill();
-ctx.stroke();
-
-ctx.restore();
-
-// Draw second smaller cloud
-ctx.save();
-
-const x2 = cloud2.x;
-const y2 = cloud2.baseY + Math.sin(timestamp / 400 + cloud2.phase) * 2;
-const s2 = cloud2.size;
-
-ctx.fillStyle = "white";
-ctx.strokeStyle = "#385464";
-ctx.lineWidth = 2;
-ctx.shadowColor = "rgba(0, 0, 0, 0.05)";
-ctx.shadowBlur = 4;
-
-ctx.beginPath();
-// Left hump
-ctx.arc(x2 - s2 * 0.6, y2, s2 * 0.6, Math.PI * 0.5, Math.PI * 1.5);
-// Top hump
-ctx.arc(x2, y2 - s2 * 0.6, s2 * 0.9, Math.PI, 0);
-// Right hump
-ctx.arc(x2 + s2 * 0.6, y2, s2 * 0.6, Math.PI * 1.5, Math.PI * 0.5);
-ctx.closePath();
-
-ctx.fill();
-ctx.stroke();
-
-ctx.restore();
-
-      // 🚗 Draw car
-      ctx.drawImage(car, 10, canvas.height - carHeight - 5, carWidth, carHeight);
+        requestAnimationFrame(animate);
+      };
 
       requestAnimationFrame(animate);
-    }
+    };
 
-    requestAnimationFrame(animate);
-  };
-},
+    // Function to draw a cloud
+    function drawCloud(ctx, cloudObj, timestamp) {
+      ctx.save();
+      const x = cloudObj.x;
+      const y = cloudObj.baseY + Math.sin(timestamp / 400 + cloudObj.phase) * 2;
+      const s = cloudObj.size;
+
+      ctx.fillStyle = "white";
+      ctx.strokeStyle = "#385464";
+      ctx.lineWidth = 2;
+      ctx.shadowColor = "rgba(0, 0, 0, 0.05)";
+      ctx.shadowBlur = 4;
+
+      ctx.beginPath();
+      ctx.arc(x - s * 0.6, y, s * 0.6, Math.PI * 0.5, Math.PI * 1.5);
+      ctx.arc(x, y - s * 0.6, s * 0.9, Math.PI, 0);
+      ctx.arc(x + s * 0.6, y, s * 0.6, Math.PI * 1.5, Math.PI * 0.5);
+      ctx.closePath();
+
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+    }
+  },
 
   methods: {
+    // Toggle open/close for the selected FAQ item
     toggle(index) {
       this.activeIndex = this.activeIndex === index ? null : index;
     }
-  },
-computed: {
-  filteredFaqs() {
-    if (!this.searchQuery.trim()) return this.faqs;
-    const q = this.searchQuery.toLowerCase();
-    return this.faqs.filter(
-      item =>
-        item.question.toLowerCase().includes(q) ||
-        item.answer.toLowerCase().includes(q)
-    );
   }
-}
 };
 </script>
 
@@ -182,14 +142,14 @@ computed: {
   padding: 40px 20px;
   font-family: "Nunito Sans", sans-serif;
   min-height: 100vh;
-    position: relative;
+  position: relative;
   z-index: 1;
 }
 
 .section-title {
   text-align: center;
   color: #fff;
-  margin-bottom: 10px;
+  margin-bottom: 20px;
   font-size: 36px;
 }
 
@@ -244,38 +204,13 @@ computed: {
   transform: translateY(0);
 }
 
-.bottom-animation {
-  display: flex;
-  justify-content: flex-start; /* or center or end */
-  margin-top: 30px; /* pushes it down visually */
-}
-
 .car-canvas-background {
   position: fixed;
   bottom: 20px;
   left: 20px;
   width: 400px;
   height: 200px;
-  z-index: 0; /* behind content */
+  z-index: 0;
   pointer-events: none;
 }
-
-.faq-search {
-  display: flex;
-  justify-content: center;
-  margin: 20px 0;
-}
-
-.faq-search-input {
-  width: 100%;
-  max-width: 600px;
-  padding: 12px 16px;
-  font-size: 16px;
-  border-radius: 8px;
-  border: none;
-  outline: none;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-
 </style>

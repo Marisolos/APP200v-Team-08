@@ -23,16 +23,21 @@
 </div>
 
       <article
-        class="ad-card"
-        v-for="(ad, index) in visibleAds"
-        :key="index"
-        aria-label="Parking listing"
-      >
-        <div class="ad-details">
-          <h3 class="ad-title">{{ ad.address }}</h3>
-          <p class="ad-subtitle">{{ $t('listings.published') }} {{ formatDateOnly(ad.createdAt) }}</p>
-          <p class="ad-address"><strong>{{ $t('listings.price') }}</strong> {{ ad.price }} {{ $t('listings.price.full') }}</p>
-          <p class="ad-address"><strong>{{ $t('listings.available') }}</strong> {{ ad.availableWeekdays }} | {{ ad.startTime }}–{{ ad.endTime }}</p>
+  class="ad-card"
+  v-for="(ad, index) in visibleAds"
+  :key="index"
+  aria-label="Parking listing"
+>
+  <div class="ad-details">
+    <!-- Thumbnail if image exists -->
+    <div v-if="ad.images && ad.images.length" class="ad-thumbnail">
+      <img :src="ad.images[0].url" alt="Listing image" />
+    </div>
+
+    <h3 class="ad-title">{{ ad.address }}</h3>
+    <p class="ad-subtitle">{{ $t('listings.published') }} {{ formatDateOnly(ad.createdAt) }}</p>
+    <p class="ad-address"><strong>{{ $t('listings.price') }}</strong> {{ ad.price }} {{ $t('listings.price.full') }}</p>
+    <p class="ad-address"><strong>{{ $t('listings.available') }}</strong> {{ ad.availableWeekdays }} | {{ ad.startTime }}–{{ ad.endTime }}</p>
           <div class="ad-book">
 
             <div v-if="expandedAdId === ad.id" class="ad-details-expanded">
@@ -544,6 +549,23 @@ updateVisibleAds() {
   border-radius: 6px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.1);
 }
+
+.ad-thumbnail {
+  width: 100%;
+  max-width: 150px;
+  height: 100px;
+  overflow: hidden;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.ad-thumbnail img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
 
 </style>
 

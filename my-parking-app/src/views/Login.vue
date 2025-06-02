@@ -1,12 +1,12 @@
 <template>
   <div class="page-container">
     <div class="login-wrapper">
-      <!-- Left Side: Login Form -->
+      <!-- === Left Side: Login Form === -->
       <div class="login-form-container">
         <h2 class="login-title">Welcome back 👋</h2>
         <p class="login-subtitle">Please enter your details.</p>
 
-        <!-- Google Sign-In Button -->
+        <!-- Google Sign-In -->
         <button @click="signInWithGoogle" class="login-btn">
           <img src="@/assets/google-icon.png" alt="Google" class="google-icon" />
           Sign in with Google
@@ -21,13 +21,14 @@
           <button type="submit" class="login-btn">Sign in with Email</button>
         </form>
 
+        <!-- Sign-Up Redirect -->
         <p class="signup-text">
           Don't have an account?
           <span @click="signUpWithEmail" class="signup-link">Sign up</span>
         </p>
       </div>
 
-      <!-- Right Side: Image -->
+      <!-- === Right Side: Image Display === -->
       <div class="login-image">
         <img src="@/assets/parking-car.png" alt="Parking Car" />
       </div>
@@ -52,16 +53,16 @@ import {
   getDocs
 } from "firebase/firestore";
 
-
 export default {
   name: "UserLogin",
   data() {
     return {
-      email: "",
-      password: ""
+      email: "",    // Bound to the input field for email
+      password: ""  // Bound to the input field for password
     };
   },
   methods: {
+    // Handle Google Sign-In
     async signInWithGoogle() {
       try {
         const result = await signInWithPopup(auth, provider);
@@ -72,6 +73,7 @@ export default {
       }
     },
 
+    // Handle Email/Password Sign-In
     async signInWithEmail() {
       try {
         const result = await signInWithEmailAndPassword(auth, this.email, this.password);
@@ -83,6 +85,7 @@ export default {
       }
     },
 
+    // Handle Email/Password Sign-Up
     async signUpWithEmail() {
       try {
         const result = await createUserWithEmailAndPassword(auth, this.email, this.password);
@@ -94,49 +97,52 @@ export default {
       }
     },
 
-   async saveUserToFirestore(user) {
-  if (!user || !user.uid) return;
+    // Save new user data or update missing info in Firestore
+    async saveUserToFirestore(user) {
+      if (!user || !user.uid) return;
 
-  const userRef = doc(db, "users", user.uid);
-  const docSnap = await getDoc(userRef);
+      const userRef = doc(db, "users", user.uid);
+      const docSnap = await getDoc(userRef);
 
-  const email = user.email || "user@example.com";
-  const base = email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
-  let username = base;
+      const email = user.email || "user@example.com";
+      const base = email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "").toLowerCase();
+      let username = base;
 
-  // Only fetch all usernames if needed
-  if (!docSnap.exists() || !docSnap.data().username) {
-    const usersSnap = await getDocs(collection(db, "users"));
-    const existingUsernames = usersSnap.docs
-      .map(doc => doc.data().username)
-      .filter(Boolean);
+      // Generate unique username if not set
+      if (!docSnap.exists() || !docSnap.data().username) {
+        const usersSnap = await getDocs(collection(db, "users"));
+        const existingUsernames = usersSnap.docs
+          .map(doc => doc.data().username)
+          .filter(Boolean);
 
-    let count = 1;
-    while (existingUsernames.includes(username)) {
-      username = `${base}${count++}`;
+        let count = 1;
+        while (existingUsernames.includes(username)) {
+          username = `${base}${count++}`;
+        }
+      }
+
+      // Create new user document if it doesn't exist
+      if (!docSnap.exists()) {
+        await setDoc(userRef, {
+          uid: user.uid,
+          email,
+          username,
+          createdAt: new Date()
+        });
+      } else {
+        const userData = docSnap.data();
+        // Update username only if it doesn't already exist
+        if (!userData.username) {
+          await updateDoc(userRef, { username });
+        }
+      }
     }
-  }
-
-  if (!docSnap.exists()) {
-    await setDoc(userRef, {
-      uid: user.uid,
-      email,
-      username,
-      createdAt: new Date()
-    });
-  } else {
-    const userData = docSnap.data();
-    if (!userData.username) {
-      await updateDoc(userRef, { username });
-    }
-  }
-}
-
   }
 };
 </script>
 
 <style scoped>
+/* === Container === */
 .page-container {
   background-color: #ABC89D;
   height: 100vh;
@@ -147,6 +153,7 @@ export default {
   overflow: hidden;
 }
 
+/* === Login Box === */
 .login-wrapper {
   background-color: white;
   display: flex;
@@ -160,6 +167,7 @@ export default {
   position: relative;
 }
 
+/* === Form Area === */
 .login-form-container {
   width: 50%;
   padding: 40px;
@@ -178,6 +186,7 @@ export default {
   margin-bottom: 20px;
 }
 
+/* === Buttons and Inputs === */
 .login-btn {
   background-color: #5B8D8A;
   color: white;
@@ -213,6 +222,7 @@ export default {
   font-size: 16px;
 }
 
+/* === Sign-Up Link === */
 .signup-text {
   margin-top: 10px;
   font-size: 14px;
@@ -225,6 +235,7 @@ export default {
   text-decoration: none;
 }
 
+/* === Image Area === */
 .login-image {
   width: 50%;
   display: flex;
