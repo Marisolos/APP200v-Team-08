@@ -1,7 +1,7 @@
 
 # 🅿️ Parq – Find & List Parking Easily
 
-**MyParkingApp** is a full-stack web application that allows users to register and list their private parking spots, search for available parking in their area, and book a space in just a few clicks. Built with Vue 3 and Firebase, the app focuses on simplicity, accessibility, and responsive design.
+**Parq** is a full-stack web application that allows users to register and list their private parking spots, search for available parking in their area, and book a space in just a few clicks. Built with Vue 3 and Firebase, the app focuses on simplicity, accessibility, and responsive design.
 
 
 ## 📷 Screenshots
