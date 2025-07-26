@@ -41,12 +41,14 @@
 - 💬 **User Feedback**  
   Alerts and UI feedback for validation, bookings, and listing submission.
 
-- 🤝 **Contributors**
-   - Mari S. Østern
-   - Magnus F. Bjordammen
-   - Kaisa Bakstad
-   - Hedvig Stordalen
-   - Adnan Duric
+## 👥 Contributors
+
+- [Mari](https://github.com/marisolos) – Project Manager/Scrum Master  
+- [Magnus](https://github.com/magnuuus) – Technical Lead  
+- [Adnan](https://github.com/adovic) – Feature Developer  
+- [Hedvig](https://github.com/shredvig) – Component Developer (Maps)  
+- [Kaisa](https://github.com/Kaisab93) – Documentation & Diagrams  
+
 
 Special thanks to our teachers Katerina Mangaroska and Boban Vesin at USN.
 
