@@ -1,106 +1,80 @@
-🚗 Parq — Find & Book Parking in Seconds
-Parq is a modern Vue.js web app for discovering and reserving private parking spaces. Whether you're a driver looking for a convenient spot or a homeowner with a driveway to rent out, this app makes it easy to connect and manage bookings.
 
-📸 Preview
-<img width="418" height="243" alt="image" src="https://github.com/user-attachments/assets/7ce45c45-015d-4c28-9784-61c92898e56d" />
+# 🅿️ Parq – Find & List Parking Easily
 
+**MyParkingApp** is a full-stack web application that allows users to register and list their private parking spots, search for available parking in their area, and book a space in just a few clicks. Built with Vue 3 and Firebase, the app focuses on simplicity, accessibility, and responsive design.
 
 
-✨ Features
-🔍 Search & Filter – Find spots by address, city, ID, price, or day of the week.
+## 📷 Screenshots
 
-🧭 Smart Sorting – Sort listings by price or date posted.
+<img width="418" height="243" alt="image" src="https://github.com/user-attachments/assets/001143f9-382a-4dd5-9f6a-f2c3e8002b12" />
 
-📆 Flexible Booking – Choose a weekday and time range; avoid double-bookings with real-time conflict detection.
+<img width="418" height="243" alt="image" src="https://github.com/user-attachments/assets/4e9db794-3789-4a41-ad75-53a564c891f2" />
 
-✅ Authentication – Sign up or log in with Firebase (Google/email).
+<img width="418" height="243" alt="image" src="https://github.com/user-attachments/assets/3723dcc0-26e3-4515-a673-48404974a0f2" />
 
-📄 FAQ Page – Custom collapsible UI with animated background.
+<img width="418" height="243" alt="image" src="https://github.com/user-attachments/assets/9e792073-98b5-44af-96cf-d120ac0f8292" />
 
-🗂️ Parking History – View and manage your past & upcoming bookings.
 
-❌ Cancel Booking – Instantly cancel future bookings.
 
-🌍 Multilingual Support – Includes internationalization with vue-i18n.
+## 🚀 Features
 
-🛠️ Tech Stack
-Tool	Purpose
-Vue.js	Frontend framework 
-Vue Router	Routing/navigation
-Firebase	Authentication, Firestore database
-Pinia	State management
-Leaflet.js	Map view 
-Fawmi GMaps	Google Maps component
-CSS	Styling
+- 🔐 **Authentication**  
+  Secure login using Firebase Authentication (Google and email/password support). Access to app content is restricted to authenticated users.
 
-🚀 Getting Started
-🔧 Requirements
-Node.js
+- 📝 **List a Parking Spot**  
+  Multi-step form to add a parking spot with:
+  - Features (e.g., charger, roof)
+  - Dimensions
+  - Availability (day/time-based rules)
+  - Photos and custom guidelines
+  - Location geocoded via Google Maps API
 
-npm
+- 📍 **Search & Book**  
+  - Search bar with filtering
+  - Listings sorted by date or price
+  - Clean, card-based UI with expandable details
+  - Booking interface for selecting day/time
 
-📦 Installation
+- 🌐 **Internationalization**  
+  Language toggle for English and Norwegian (via `vue-i18n`).
 
-# Clone the project
-git clone https://github.com/your-username/smart-parking.git
-cd smart-parking
+- 💬 **User Feedback**  
+  Alerts and UI feedback for validation, bookings, and listing submission.
 
-# Install dependencies
-npm install
-
-# Start the dev server
-npm run dev
-🔐 Environment Setup
-Create a .env file in the root folder:
-
-VITE_FIREBASE_API_KEY=your-api-key
-VITE_FIREBASE_AUTH_DOMAIN=your-app.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=your-app-id
-VITE_FIREBASE_STORAGE_BUCKET=your-app.appspot.com
-VITE_FIREBASE_MESSAGING_SENDER_ID=your-messaging-id
-VITE_FIREBASE_APP_ID=your-app-id
-⚠️ Do not commit your .env file — it's listed in .gitignore.
-
-🧪 Testing
-Basic manual testing was performed on key user flows:
-
- Login/Logout
-
- Booking a spot
-
- Double-booking prevention
-
- Cancelling a booking
-
- Display of availability per weekday
-
- Search/sort functionality
-
-🤝 Contributors
-Mari S. Østern
-
-Magnus F. Bjordammen
-
-Kaisa Bakstad
-
-Hedvig Stordalen
-
-Adnan Duric
+- 🤝 **Contributors**
+   - Mari S. Østern
+   - Magnus F. Bjordammen
+   - Kaisa Bakstad
+   - Hedvig Stordalen
+   - Adnan Duric
 
 Special thanks to our teachers Katerina Mangaroska and Boban Vesin at USN.
 
-📚 Learnings & Reflections
-We learned how to:
+## 🛠️ Tech Stack
 
-Use Vue components and props effectively
+| Frontend     | Backend/Storage   | Other Tools         |
+|--------------|-------------------|----------------------|
+| Vue 3        | Firebase Firestore| Google Maps API      |
+| Vue Router   | Firebase Auth     | Vue I18n             |
+| Pinia (store)| Firebase Storage  | CropperJS (optional) |
+| Bootstrap 5  |                   | Leaflet (experimental)|
 
-Manage user state with Firebase Auth
+## 🧪 MVP Scope
 
-Prevent booking conflicts in Firestore queries
+- Login & protected routes
+- Listing form with rule-based availability
+- Basic search, sort, and filter UI
+- Image upload and preview
+- Booking system (time + weekday)
+- Clean, responsive design
 
-Collaborate in the same codebase using Git
 
-Balance UX with functionality across features like search, sort, and booking
+## 📦 Setup & Run
 
-📄 License
-This project is for educational use only. Not for commercial deployment.
+Clone the repo and install dependencies:
+
+```bash
+git clone https://github.com/yourusername/my-parking-app.git
+cd my-parking-app
+npm install
+
