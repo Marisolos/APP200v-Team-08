@@ -6,13 +6,13 @@
 
 ## 📷 Screenshots
 
-<img width="418" height="243" alt="image" src="https://github.com/user-attachments/assets/001143f9-382a-4dd5-9f6a-f2c3e8002b12" />
+<img width="300" height="200" alt="image" src="https://github.com/user-attachments/assets/001143f9-382a-4dd5-9f6a-f2c3e8002b12" />
 
-<img width="418" height="243" alt="image" src="https://github.com/user-attachments/assets/4e9db794-3789-4a41-ad75-53a564c891f2" />
+<img width="300" height="200" alt="image" src="https://github.com/user-attachments/assets/4e9db794-3789-4a41-ad75-53a564c891f2" />
 
-<img width="418" height="243" alt="image" src="https://github.com/user-attachments/assets/3723dcc0-26e3-4515-a673-48404974a0f2" />
+<img width="300" height="200" alt="image" src="https://github.com/user-attachments/assets/3723dcc0-26e3-4515-a673-48404974a0f2" />
 
-<img width="418" height="243" alt="image" src="https://github.com/user-attachments/assets/9e792073-98b5-44af-96cf-d120ac0f8292" />
+<img width="300" height="200" alt="image" src="https://github.com/user-attachments/assets/9e792073-98b5-44af-96cf-d120ac0f8292" />
 
 
 
