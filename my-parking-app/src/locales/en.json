@@ -285,5 +285,8 @@
   "listings.alert.conflict": "This time slot is already booked.",
   "listings.alert.success": "Booking successful!",
 
-   "listings.price.full": " kr / hour"
+   "listings.price.full": " kr / hour",
+   "listings.owner.notice": "You own this listing"
+
+
 }
